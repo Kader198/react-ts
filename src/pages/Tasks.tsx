@@ -7,6 +7,10 @@ import { TaskForm } from '../components/tasks/TaskForm';
 import { DataTable } from '../components/common/DataTable';
 import { DataTableFilters } from '../components/common/DataTableFilters';
 import { ModalForm } from '../components/common/ModalForm';
+import { Button } from '../components/ui/button';
+import { FormInput } from '../components/ui/form-input';
+import { Textarea } from '../components/ui/textarea';
+import { Select } from '../components/ui/select';
 
 interface TaskFormData {
   title: string;
@@ -17,70 +21,67 @@ interface TaskFormData {
 
 export const Tasks: React.FC = () => {
   const queryClient = useQueryClient();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [formData, setFormData] = useState<TaskFormData>({
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterValue, setFilterValue] = useState('all');
+
+  // Form state
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'medium',
+    priority: 'medium' as Task['priority'],
     dueDate: new Date().toISOString().split('T')[0],
   });
 
   // Queries
-  const { data: tasks, isLoading } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => apiService.listTasks(),
-  });
-
-  // Mutations
-  const createTaskMutation = useMutation({
-    mutationFn: (newTask: Partial<Task>) => apiService.createTask(newTask),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setIsAddModalOpen(false);
-      resetForm();
+  const { data: tasks = [], isLoading } = useQuery({
+    queryKey: ['tasks', searchQuery, filterValue],
+    queryFn: async () => {
+      const allTasks = await apiService.listTasks();
+      return allTasks.filter(task => {
+        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFilter = filterValue === 'all' || task.priority === filterValue;
+        return matchesSearch && matchesFilter;
+      });
     },
   });
 
-  const updateTaskMutation = useMutation({
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (newTask: Partial<Task>) => apiService.createTask(newTask),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      handleCloseModal();
+    },
+  });
+
+  const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Task> }) =>
       apiService.updateTask(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setEditingTask(null);
-      resetForm();
+      handleCloseModal();
     },
   });
 
-  const deleteTaskMutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: (id: string) => apiService.deleteTask(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
 
-  const toggleTaskStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: Task['status'] }) =>
-      apiService.updateTask(id, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handlers
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const taskData = {
-      ...formData,
-      status: 'todo' as const,
-    };
-
     if (editingTask) {
-      updateTaskMutation.mutate({
+      updateMutation.mutate({
         id: editingTask.id,
-        data: taskData,
+        data: formData,
       });
     } else {
-      createTaskMutation.mutate(taskData);
+      createMutation.mutate(formData);
     }
   };
 
@@ -92,21 +93,18 @@ export const Tasks: React.FC = () => {
       priority: task.priority,
       dueDate: task.dueDate.split('T')[0],
     });
-    setIsAddModalOpen(true);
+    setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (task: Task) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
-      deleteTaskMutation.mutate(id);
+      deleteMutation.mutate(task.id);
     }
   };
 
-  const handleToggleStatus = (task: Task) => {
-    const newStatus = task.status === 'completed' ? 'todo' : 'completed';
-    toggleTaskStatusMutation.mutate({ id: task.id, status: newStatus });
-  };
-
-  const resetForm = () => {
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingTask(null);
     setFormData({
       title: '',
       description: '',
@@ -124,12 +122,33 @@ export const Tasks: React.FC = () => {
       header: 'Priority',
       accessorKey: 'priority' as const,
       cell: (task: Task) => (
-        <span className={getPriorityClass(task.priority)}>
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+          ${task.priority === 'high' ? 'bg-red-100 text-red-800' : 
+            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+            'bg-green-100 text-green-800'}`}
+        >
           {task.priority}
         </span>
       ),
     },
-    // ... other columns
+    {
+      header: 'Due Date',
+      accessorKey: 'dueDate' as const,
+      cell: (task: Task) => new Date(task.dueDate).toLocaleDateString(),
+    },
+    {
+      header: 'Status',
+      accessorKey: 'status' as const,
+      cell: (task: Task) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+          ${task.status === 'completed' ? 'bg-green-100 text-green-800' : 
+            task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' : 
+            'bg-gray-100 text-gray-800'}`}
+        >
+          {task.status}
+        </span>
+      ),
+    },
   ];
 
   if (isLoading) {
@@ -142,16 +161,25 @@ export const Tasks: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <div className="sm:flex sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            Manage and track your team's tasks
+          </p>
+        </div>
+      </div>
+
       <DataTableFilters
-        onSearch={(value) => {/* handle search */}}
-        onFilter={(value) => {/* handle filter */}}
+        onSearch={setSearchQuery}
+        onFilter={setFilterValue}
         filterOptions={[
           { label: 'All', value: 'all' },
           { label: 'High Priority', value: 'high' },
           { label: 'Medium Priority', value: 'medium' },
           { label: 'Low Priority', value: 'low' },
         ]}
-        onAdd={() => setIsAddModalOpen(true)}
+        onAdd={() => setIsModalOpen(true)}
         addButtonText="Add Task"
       />
 
@@ -165,15 +193,51 @@ export const Tasks: React.FC = () => {
 
       <ModalForm
         title={editingTask ? 'Edit Task' : 'New Task'}
-        isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setEditingTask(null);
-        }}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
         onSubmit={handleSubmit}
-        isLoading={isLoading}
+        isLoading={createMutation.isPending || updateMutation.isPending}
       >
-        {/* Your form fields */}
+        <div className="space-y-4">
+          <FormInput
+            id="title"
+            name="title"
+            label="Title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+          />
+
+          <Textarea
+            id="description"
+            name="description"
+            label="Description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="Priority"
+              value={formData.priority}
+              onChange={(e) => setFormData({ ...formData, priority: e.target.value as Task['priority'] })}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </Select>
+
+            <FormInput
+              id="dueDate"
+              name="dueDate"
+              type="date"
+              label="Due Date"
+              value={formData.dueDate}
+              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+              min={new Date().toISOString().split('T')[0]}
+            />
+          </div>
+        </div>
       </ModalForm>
     </div>
   );

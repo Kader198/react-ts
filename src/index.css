@@ -1,4 +1,81 @@
 @import "tailwindcss";
 
+/* FullCalendar Custom Theme */
+.fc-theme-custom {
+  --fc-border-color: theme('colors.gray.200');
+  --fc-button-bg-color: theme('colors.white');
+  --fc-button-border-color: theme('colors.gray.300');
+  --fc-button-text-color: theme('colors.gray.700');
+  --fc-button-hover-bg-color: theme('colors.gray.50');
+  --fc-button-hover-border-color: theme('colors.gray.400');
+  --fc-button-active-bg-color: theme('colors.gray.100');
+  --fc-today-bg-color: theme('colors.blue.50');
+}
+
+.fc-theme-custom .fc-button {
+  @apply shadow-sm text-sm font-medium;
+}
+
+.fc-theme-custom .fc-button-primary:not(:disabled):active,
+.fc-theme-custom .fc-button-primary:not(:disabled).fc-button-active {
+  @apply bg-gray-100 border-gray-400 shadow-none;
+}
+
+.fc-theme-custom .fc-toolbar-title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.fc-theme-custom .fc-event {
+  @apply rounded-md border-0 shadow-sm;
+}
+
+.fc-theme-custom .fc-daygrid-day-number,
+.fc-theme-custom .fc-col-header-cell-cushion {
+  @apply text-sm text-gray-700;
+}
+
+/* Task Status Styles */
+.fc-theme-custom .fc-event.task-todo {
+  @apply bg-gray-100 border-gray-400 text-gray-700;
+}
+
+.fc-theme-custom .fc-event.task-in-progress {
+  @apply bg-blue-100 border-blue-400 text-blue-700;
+}
+
+.fc-theme-custom .fc-event.task-in-review {
+  @apply bg-yellow-100 border-yellow-400 text-yellow-700;
+}
+
+.fc-theme-custom .fc-event.task-completed {
+  @apply bg-green-100 border-green-400 text-green-700;
+}
+
+/* Priority Indicators */
+.fc-theme-custom .fc-event {
+  position: relative;
+}
+
+.fc-theme-custom .fc-event::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+.fc-theme-custom .fc-event.priority-high::before {
+  @apply bg-red-500;
+}
+
+.fc-theme-custom .fc-event.priority-medium::before {
+  @apply bg-yellow-500;
+}
+
+.fc-theme-custom .fc-event.priority-low::before {
+  @apply bg-green-500;
+}
+
 
  

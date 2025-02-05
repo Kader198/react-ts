@@ -19,10 +19,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <div className="relative">
           <select
             className={cn(
-              "block w-full appearance-none rounded-lg border border-gray-200 bg-white/50 px-3 py-2 pr-8 text-gray-900",
-              "hover:bg-white/80 transition-colors duration-200",
-              "focus:outline-none focus:bg-white",
-              "disabled:cursor-not-allowed disabled:bg-gray-50/50 disabled:text-gray-500",
+              "block w-full appearance-none rounded-lg bg-white px-3 py-2 pr-8 text-gray-900",
+              "border border-gray-200 hover:border-gray-300",
+              "transition-colors duration-200",
+              "focus:outline-none focus:border-primary",
+              "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
               error && "border-red-500",
               className
             )}

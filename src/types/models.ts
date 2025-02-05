@@ -29,13 +29,11 @@ export interface Project {
   name: string;
   description: string;
   status: 'active' | 'completed' | 'on-hold';
-  progress: number;
   startDate: string;
   endDate: string;
-  members: User[];
-  tasks: Task[];
-  createdAt: string;
-  updatedAt: string;
+  teamId: string;
+  progress: number;
+  members: Array<{ name: string; avatar: string }>;
 }
 
 export interface Comment {
@@ -76,10 +74,9 @@ export interface Team {
   id: string;
   name: string;
   description?: string;
-  members: User[];
-  projects: Project[];
-  createdAt: string;
-  updatedAt: string;
+  members?: User[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Analytics {

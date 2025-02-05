@@ -32,7 +32,7 @@ export function DataTable<T extends { id: string }>({
   isLoading 
 }: DataTableProps<T>) {
   return (
-    <div className="border rounded-lg">
+    <div className="rounded-lg bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
       <Table>
         <TableHeader>
           <TableRow>

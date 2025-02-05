@@ -3,11 +3,11 @@ import { cn } from "../../lib/utils"
 
 const buttonVariants = {
   variant: {
-    default: "bg-gradient-to-r from-primary to-primary/80 text-white hover:opacity-90",
-    destructive: "bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90",
-    outline: "border border-gray-200 bg-white/50 hover:bg-gray-50/50 backdrop-blur-sm",
-    ghost: "hover:bg-gray-50/50",
-    link: "text-primary hover:opacity-80",
+    default: "bg-black text-white hover:bg-primary/90 shadow-sm",
+    destructive: "bg-red-500 text-white hover:bg-red-600 shadow-sm",
+    outline: "border border-primary/20 bg-transparent hover:bg-primary/5 text-primary",
+    ghost: "text-primary hover:bg-primary/5",
+    link: "text-primary hover:underline underline-offset-4",
   },
   size: {
     default: "h-10 px-4 py-2",

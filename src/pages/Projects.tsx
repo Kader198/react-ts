@@ -1,23 +1,110 @@
-import React from 'react';
-import { Plus, Users, Calendar, CheckCircle } from 'lucide-react';
-
-const projects = [
-  {
-    id: 1,
-    name: 'Website Redesign',
-    description: 'Redesign and development of the company website',
-    progress: 65,
-    members: [
-      { name: 'John Doe', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=john' },
-      { name: 'Jane Smith', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=jane' },
-    ],
-    dueDate: '2024-03-15',
-    status: 'In Progress',
-  },
-  // Add more projects...
-];
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, Users, Calendar, CheckCircle, Loader } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { cn } from '../lib/utils';
+import { apiService } from '../services/api';
+import { Project } from '../types/models';
+import { ProjectForm } from '../components/projects/ProjectForm';
+import { ModalForm } from '../components/common/ModalForm';
 
 export const Projects: React.FC = () => {
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    dueDate: new Date().toISOString().split('T')[0],
+    members: [],
+  });
+
+  // Queries
+  const { data: projects = [], isLoading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: apiService.listProjects,
+  });
+
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (newProject: Partial<Project>) => apiService.createProject(newProject),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      handleCloseModal();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Project> }) =>
+      apiService.updateProject(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      handleCloseModal();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiService.deleteProject(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+
+  // Handlers
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingProject(null);
+    setFormData({
+      name: '',
+      description: '',
+      dueDate: new Date().toISOString().split('T')[0],
+      members: [],
+    });
+  };
+
+  const handleEdit = (project: Project) => {
+    setEditingProject(project);
+    setFormData({
+      name: project.name,
+      description: project.description,
+      dueDate: project.dueDate,
+      members: project.members,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (project: Project) => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      await deleteMutation.mutateAsync(project.id);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingProject) {
+      await updateMutation.mutateAsync({
+        id: editingProject.id,
+        data: formData,
+      });
+    } else {
+      await createMutation.mutateAsync(formData);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="sm:flex sm:items-center sm:justify-between">
@@ -28,10 +115,10 @@ export const Projects: React.FC = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-            <Plus className="h-5 w-5 mr-2" />
+          <Button onClick={handleOpenModal}>
+            <Plus className="h-4 w-4 mr-2" />
             New Project
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -39,7 +126,7 @@ export const Projects: React.FC = () => {
         {projects.map((project) => (
           <div
             key={project.id}
-            className="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200"
+            className="bg-white rounded-lg shadow-[0_2px_8px_rgb(0,0,0,0.04)] overflow-hidden"
           >
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900">{project.name}</h3>
@@ -50,15 +137,15 @@ export const Projects: React.FC = () => {
                   <span>Progress</span>
                   <span>{project.progress}%</span>
                 </div>
-                <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <div className="mt-2 w-full bg-gray-100 rounded-full h-2">
                   <div
-                    className="bg-indigo-600 h-2 rounded-full"
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
                     style={{ width: `${project.progress}%` }}
                   />
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between">
+              <div className="mt-6 flex items-center justify-between">
                 <div className="flex -space-x-2">
                   {project.members.map((member, idx) => (
                     <img
@@ -69,14 +156,39 @@ export const Projects: React.FC = () => {
                     />
                   ))}
                 </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {project.status}
-                </span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {new Date(project.dueDate).toLocaleDateString()}
+                  </div>
+                  <span className={cn(
+                    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                    project.status === 'In Progress' 
+                      ? "bg-primary/10 text-primary"
+                      : "bg-green-100 text-green-800"
+                  )}>
+                    {project.status}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      <ModalForm
+        title={editingProject ? 'Edit Project' : 'New Project'}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmit}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      >
+        <ProjectForm
+          formData={formData}
+          setFormData={setFormData}
+          isEditing={!!editingProject}
+        />
+      </ModalForm>
     </div>
   );
 }; 
