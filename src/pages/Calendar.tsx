@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -10,13 +10,43 @@ import { apiService } from '../services/api';
 import { Button } from '../components/ui/button';
 import { ModalForm } from '../components/common/ModalForm';
 import { TaskDetailsModal } from '../components/tasks/TaskDetailsModal';
+import { TaskForm } from '../components/tasks/TaskForm';
+import toast from 'react-hot-toast';
 
 export const Calendar: React.FC = () => {
+  const queryClient = useQueryClient();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<{ start: string; end: string } | null>(null);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => apiService.listTasks(),
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: (data: { id: string; dueDate: string }) =>
+      apiService.updateTask(data.id, { dueDate: data.dueDate }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task updated successfully');
+    },
+    onError: () => {
+      toast.error('Failed to update task');
+    },
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: apiService.createTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      setIsNewTaskModalOpen(false);
+      setSelectedDates(null);
+      toast.success('Task created successfully');
+    },
+    onError: () => {
+      toast.error('Failed to create task');
+    },
   });
 
   const getTaskStyle = (task: Task) => {
@@ -49,10 +79,10 @@ export const Calendar: React.FC = () => {
       'low': '0.6'
     };
 
-    const style = statusColors[task.status];
     return {
-      ...style,
-      opacity: priorityOpacity[task.priority]
+      ...statusColors[task.status],
+      opacity: priorityOpacity[task.priority],
+      className: `task-${task.status} priority-${task.priority}`
     };
   };
 
@@ -63,6 +93,25 @@ export const Calendar: React.FC = () => {
     ...getTaskStyle(task),
     extendedProps: task
   }));
+
+  const handleEventDrop = async (info: any) => {
+    try {
+      await updateTaskMutation.mutateAsync({
+        id: info.event.id,
+        dueDate: info.event.startStr
+      });
+    } catch (error) {
+      info.revert();
+    }
+  };
+
+  const handleDateSelect = (info: any) => {
+    setSelectedDates({
+      start: info.startStr,
+      end: info.endStr
+    });
+    setIsNewTaskModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -82,7 +131,7 @@ export const Calendar: React.FC = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <Button>
+          <Button onClick={() => setIsNewTaskModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>
@@ -120,15 +169,22 @@ export const Calendar: React.FC = () => {
           selectMirror={true}
           dayMaxEvents={true}
           weekends={true}
-          select={(info) => {
-            // Handle date selection - could open new task modal
-            console.log('Date range selected:', info.startStr, info.endStr);
+          select={handleDateSelect}
+          eventDrop={handleEventDrop}
+          className="fc-theme-custom"
+          slotMinTime="06:00:00"
+          slotMaxTime="20:00:00"
+          businessHours={{
+            daysOfWeek: [1, 2, 3, 4, 5],
+            startTime: '09:00',
+            endTime: '17:00',
           }}
-          eventDrop={(info) => {
-            // Handle event drag and drop - could update task due date
-            console.log('Event dropped:', info.event.startStr);
+          nowIndicator={true}
+          eventTimeFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false
           }}
-          className="fc-theme-custom" // Add custom theme class
         />
       </div>
 
@@ -142,6 +198,28 @@ export const Calendar: React.FC = () => {
         }}
       >
         {selectedTask && <TaskDetailsModal task={selectedTask} />}
+      </ModalForm>
+
+      <ModalForm
+        title="New Task"
+        isOpen={isNewTaskModalOpen}
+        onClose={() => {
+          setIsNewTaskModalOpen(false);
+          setSelectedDates(null);
+        }}
+        onSubmit={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <TaskForm
+          onSubmit={async (data) => {
+            await createTaskMutation.mutateAsync({
+              ...data,
+              dueDate: selectedDates?.start || new Date().toISOString()
+            });
+          }}
+          isLoading={createTaskMutation.isPending}
+        />
       </ModalForm>
     </div>
   );

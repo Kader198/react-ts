@@ -4,6 +4,14 @@ import { useSettingsStore } from '../stores/settingsStore';
 import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
 
+interface ListTasksParams {
+  page: number;
+  pageSize: number;
+  search?: string;
+  filters?: Record<string, string>;
+  fields?: string[];
+}
+
 class ApiService {
   private static instance: ApiService;
   private baseUrl: string;
@@ -55,14 +63,52 @@ class ApiService {
   }
 
   // Add these CRUD methods for tasks
-  async listTasks(): Promise<Task[]> {
+  async listTasks(params: ListTasksParams): Promise<{ data: Task[]; total: number }> {
     try {
-      const response = await this.fetchWithRetry(`${this.baseUrl}tasks`);
-      const result = await response.json();
-      return result;
+      const queryParams = new URLSearchParams({
+        page: String(params.page),
+        pageSize: String(params.pageSize),
+      });
+
+      // Add search param if it exists and is not empty
+      if (params.search && params.search.trim()) {
+        queryParams.append('search', params.search.trim());
+      }
+
+      // Add filter params if they exist
+      if (params.filters) {
+        Object.entries(params.filters).forEach(([key, value]) => {
+          if (value) {
+            queryParams.append(key, value);
+          }
+        });
+      }
+
+      const response = await this.fetchWithRetry(
+        `${this.baseUrl}tasks?${queryParams.toString()}`
+      );
+      return response.json();
     } catch (error) {
       this.handleError(error);
-      throw error;
+      return { data: [], total: 0 }; // Return empty result on error
+    }
+  }
+
+  async getTasksCount(params: { search?: string; filters?: Record<string, string> }): Promise<number> {
+    try {
+      const queryParams = new URLSearchParams({
+        ...(params.search && { search: params.search }),
+        ...(params.filters && { filters: JSON.stringify(params.filters) }),
+      });
+
+      const response = await this.fetchWithRetry(
+        `${this.baseUrl}tasks/count?${queryParams.toString()}`
+      );
+      const data = await response.json();
+      return data.count;
+    } catch (error) {
+      this.handleError(error);
+      return 0;
     }
   }
 
@@ -80,6 +126,7 @@ class ApiService {
       return result;
     } catch (error) {
       this.handleError(error);
+      throw error;
     }
   }
 
@@ -97,6 +144,7 @@ class ApiService {
       return result;
     } catch (error) {
       this.handleError(error);
+      throw error;
     }
   }
 
@@ -146,10 +194,22 @@ class ApiService {
 
   // Dashboard APIs
   async getDashboardStats(): Promise<{
-    totalTasks: number;
-    teamMembers: number;
-    hoursTracked: number;
-    activeProjects: number;
+    totalTasks: {
+      current: number;
+      previous: number;
+    };
+    teamMembers: {
+      current: number;
+      previous: number;
+    };
+    hoursTracked: {
+      current: number;
+      previous: number;
+    };
+    activeProjects: {
+      current: number;
+      previous: number;
+    };
     tasksByStatus: Array<{ status: string; count: number }>;
     projectProgress: Array<{ project: string; progress: number }>;
     recentActivity: Array<{
@@ -180,7 +240,14 @@ class ApiService {
       `${this.baseUrl}projects`,
       {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          name: data.name,
+          description: data.description,
+          endDate: data.endDate,
+          startDate: data.startDate,
+          status: data.status,
+          members: data.members,
+        }),
       }
     );
     return response.json();
@@ -210,14 +277,72 @@ class ApiService {
     return response.json();
   }
 
-  private handleSuccess(message: string) {
-    toast.success(message);
+  private handleError(error: unknown) {
+    let message = 'An unexpected error occurred';
+    
+    if (error instanceof Error) {
+      // Handle specific error types
+      if ('status' in error) {
+        switch ((error as any).status) {
+          case 400:
+            message = 'Invalid request. Please check your input.';
+            break;
+          case 401:
+            message = 'Session expired. Please login again.';
+            break;
+          case 403:
+            message = 'You do not have permission to perform this action.';
+            break;
+          case 404:
+            message = 'The requested resource was not found.';
+            break;
+          case 429:
+            message = 'Too many requests. Please try again later.';
+            break;
+          case 500:
+            message = 'Server error. Please try again later.';
+            break;
+          default:
+            message = error.message || 'An error occurred';
+        }
+      } else {
+        message = error.message;
+      }
+    }
+
+    // Show toast with error details
+    toast.error(message, {
+      duration: 5000,
+      position: 'top-right',
+      icon: '❌',
+      style: {
+        background: '#FEE2E2',
+        color: '#991B1B',
+        border: '1px solid #F87171',
+      },
+    });
+
+    // Log error for debugging
+    console.error('[API Error]:', {
+      message,
+      error,
+      timestamp: new Date().toISOString(),
+    });
+
+    throw error;
   }
 
-  private handleError(error: unknown) {
-    const message = error instanceof Error ? error.message : 'An error occurred';
-    toast.error(message);
-    throw error;
+  private handleSuccess(message: string) {
+    toast.success(message, {
+      duration: 3000,
+      position: 'top-right',
+      icon: '✅',
+      style: {
+        background: '#DCFCE7',
+        color: '#166534',
+        border: '1px solid #4ADE80',
+      },
+    });
   }
 
   async createTeam(data: Partial<Team>): Promise<Team> {
@@ -234,6 +359,7 @@ class ApiService {
       return result;
     } catch (error) {
       this.handleError(error);
+      throw error;
     }
   }
 
@@ -251,6 +377,7 @@ class ApiService {
       return result;
     } catch (error) {
       this.handleError(error);
+      throw error;
     }
   }
 

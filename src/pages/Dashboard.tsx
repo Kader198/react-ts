@@ -2,6 +2,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BarChart3, Users, CheckCircle, Clock, ArrowUp, ArrowDown, Loader } from 'lucide-react';
 import { apiService } from '../services/api';
+import { TaskStatusChart } from '../components/dashboard/TaskStatusChart';
+import { ProjectProgressChart } from '../components/dashboard/ProjectProgressChart';
 
 export const Dashboard: React.FC = () => {
   const { data: dashboardData, isLoading } = useQuery({
@@ -10,33 +12,33 @@ export const Dashboard: React.FC = () => {
   });
 
   const stats = [
-    { 
-      name: 'Total Tasks', 
+    {
+      name: 'Total Tasks',
       value: dashboardData?.totalTasks ?? '-',
       change: '+12.5%',
       trend: 'up',
-      icon: CheckCircle 
+      icon: CheckCircle
     },
-    { 
-      name: 'Team Members', 
+    {
+      name: 'Team Members',
       value: dashboardData?.teamMembers ?? '-',
       change: '+2.1%',
       trend: 'up',
-      icon: Users 
+      icon: Users
     },
-    { 
-      name: 'Hours Tracked', 
+    {
+      name: 'Hours Tracked',
       value: dashboardData?.hoursTracked ?? '-',
       change: '-4.5%',
       trend: 'down',
-      icon: Clock 
+      icon: Clock
     },
-    { 
-      name: 'Projects Active', 
+    {
+      name: 'Projects Active',
       value: dashboardData?.activeProjects ?? '-',
       change: '+8.2%',
       trend: 'up',
-      icon: BarChart3 
+      icon: BarChart3
     },
   ];
 
@@ -81,9 +83,8 @@ export const Dashboard: React.FC = () => {
                   </dd>
                 </div>
               </div>
-              <div className={`mt-4 flex items-center text-sm ${
-                stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <div className={`mt-4 flex items-center text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                }`}>
                 {stat.trend === 'up' ? (
                   <ArrowUp className="h-4 w-4" />
                 ) : (
@@ -102,7 +103,7 @@ export const Dashboard: React.FC = () => {
           <h3 className="text-lg font-medium text-gray-900">Tasks by Status</h3>
           {dashboardData?.tasksByStatus && (
             <div className="mt-4">
-              {/* Add your chart component here using dashboardData.tasksByStatus */}
+              <TaskStatusChart data={dashboardData.tasksByStatus} />
             </div>
           )}
         </div>
@@ -110,7 +111,7 @@ export const Dashboard: React.FC = () => {
           <h3 className="text-lg font-medium text-gray-900">Project Progress</h3>
           {dashboardData?.projectProgress && (
             <div className="mt-4">
-              {/* Add your chart component here using dashboardData.projectProgress */}
+              <ProjectProgressChart data={dashboardData.projectProgress} />
             </div>
           )}
         </div>
@@ -123,14 +124,22 @@ export const Dashboard: React.FC = () => {
           {dashboardData?.recentActivity && (
             <div className="mt-4 space-y-4">
               {dashboardData.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center gap-4">
-                  <div className="text-sm">
-                    <span className="font-medium text-gray-900">{activity.user}</span>
-                    <span className="text-gray-500"> {activity.action}</span>
+                <div 
+                  key={activity.id} 
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm">
+                      <span className="font-medium text-gray-900">{activity.user}</span>
+                      <span className="text-gray-500"> {activity.action}</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-400">
+                  <time 
+                    className="text-xs text-gray-400"
+                    dateTime={activity.timestamp}
+                  >
                     {new Date(activity.timestamp).toLocaleDateString()}
-                  </span>
+                  </time>
                 </div>
               ))}
             </div>

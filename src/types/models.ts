@@ -22,6 +22,7 @@ export interface Task {
   comments: Comment[];
   createdAt: string;
   updatedAt: string;
+  assignee?: User;
 }
 
 export interface Project {

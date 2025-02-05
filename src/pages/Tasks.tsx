@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Loader, Filter, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { Task } from '../types/models';
@@ -11,6 +11,10 @@ import { Button } from '../components/ui/button';
 import { FormInput } from '../components/ui/form-input';
 import { Textarea } from '../components/ui/textarea';
 import { Select } from '../components/ui/select';
+import { TaskStatusBadge } from '../components/tasks/TaskStatusBadge';
+import { PriorityBadge } from '../components/tasks/PriorityBadge';
+import { useDataTableStore } from '../stores/dataTableStore';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface TaskFormData {
   title: string;
@@ -23,35 +27,46 @@ export const Tasks: React.FC = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterValue, setFilterValue] = useState('all');
+  const [pageSize] = useState(10);
+  
+  const {
+    searchTerm,
+    filters,
+    page,
+    reset: resetDataTable,
+    setIsSearching,
+  } = useDataTableStore();
 
-  // Form state
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    priority: 'medium' as Task['priority'],
-    dueDate: new Date().toISOString().split('T')[0],
-  });
+  // Debounce search and filter changes
+  const [debouncedSearch] = useDebounce(searchTerm, 500);
+  const [debouncedFilters] = useDebounce(filters, 500);
 
-  // Queries
-  const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks', searchQuery, filterValue],
+  // Separate query key from search/filter state
+  const queryKey = ['tasks', page, pageSize];
+
+  const { data: tasksData, isLoading: isLoadingTasks } = useQuery({
+    queryKey,
     queryFn: async () => {
-      const allTasks = await apiService.listTasks();
-      return allTasks.filter(task => {
-        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilter = filterValue === 'all' || task.priority === filterValue;
-        return matchesSearch && matchesFilter;
+      const result = await apiService.listTasks({
+        page,
+        pageSize,
+        search: debouncedSearch, // Use debounced values
+        filters: debouncedFilters,
       });
+      setIsSearching(false);
+      return result;
     },
+    keepPreviousData: true,
   });
 
-  // Mutations
+  // Mutations with simpler query key
   const createMutation = useMutation({
     mutationFn: (newTask: Partial<Task>) => apiService.createTask(newTask),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.refetchQueries({
+        queryKey: ['tasks', page],
+        exact: true,
+      });
       handleCloseModal();
     },
   });
@@ -60,7 +75,11 @@ export const Tasks: React.FC = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Task> }) =>
       apiService.updateTask(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      // Only refetch the current page
+      queryClient.refetchQueries({
+        queryKey: ['tasks', { page }],
+        exact: false,
+      });
       handleCloseModal();
     },
   });
@@ -68,8 +87,20 @@ export const Tasks: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiService.deleteTask(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      // Only refetch the current page
+      queryClient.refetchQueries({
+        queryKey: ['tasks', { page }],
+        exact: false,
+      });
     },
+  });
+
+  // Form state
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium' as Task['priority'],
+    dueDate: new Date().toISOString().split('T')[0],
   });
 
   // Handlers
@@ -114,47 +145,62 @@ export const Tasks: React.FC = () => {
   };
 
   const columns = [
+    { header: 'Title', accessorKey: 'title' },
     {
-      header: 'Title',
-      accessorKey: 'title' as const,
+      header: 'Status',
+      accessorKey: 'status',
+      cell: (task: Task) => <TaskStatusBadge status={task.status} />
     },
     {
       header: 'Priority',
-      accessorKey: 'priority' as const,
-      cell: (task: Task) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-          ${task.priority === 'high' ? 'bg-red-100 text-red-800' : 
-            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
-            'bg-green-100 text-green-800'}`}
-        >
-          {task.priority}
-        </span>
-      ),
+      accessorKey: 'priority',
+      cell: (task: Task) => <PriorityBadge priority={task.priority} />
     },
     {
       header: 'Due Date',
-      accessorKey: 'dueDate' as const,
-      cell: (task: Task) => new Date(task.dueDate).toLocaleDateString(),
+      accessorKey: 'dueDate',
+      cell: (task: Task) => new Date(task.dueDate).toLocaleDateString()
     },
     {
-      header: 'Status',
-      accessorKey: 'status' as const,
-      cell: (task: Task) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-          ${task.status === 'completed' ? 'bg-green-100 text-green-800' : 
-            task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' : 
-            'bg-gray-100 text-gray-800'}`}
-        >
-          {task.status}
-        </span>
-      ),
-    },
+      header: 'Assignee',
+      accessorKey: 'assigneeId',
+      cell: (task: Task) => task.assignee?.name || '-'
+    }
   ];
 
-  if (isLoading) {
+  const filterOptions = [
+    {
+      key: 'status' as keyof Task,
+      label: 'Status',
+      options: [
+        { label: 'Todo', value: 'todo' },
+        { label: 'In Progress', value: 'in-progress' },
+        { label: 'In Review', value: 'in-review' },
+        { label: 'Completed', value: 'completed' }
+      ]
+    },
+    {
+      key: 'priority' as keyof Task,
+      label: 'Priority',
+      options: [
+        { label: 'High', value: 'high' },
+        { label: 'Medium', value: 'medium' },
+        { label: 'Low', value: 'low' }
+      ]
+    }
+  ];
+
+  // Reset datatable state when component unmounts
+  useEffect(() => {
+    return () => {
+      resetDataTable();
+    };
+  }, [resetDataTable]);
+
+  if (isLoadingTasks) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-indigo-600" />
+        <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -168,28 +214,28 @@ export const Tasks: React.FC = () => {
             Manage and track your team's tasks
           </p>
         </div>
+        <div className="mt-4 sm:mt-0">
+          <Button onClick={() => setIsModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            <span>New Task</span>
+          </Button>
+        </div>
       </div>
-
-      <DataTableFilters
-        onSearch={setSearchQuery}
-        onFilter={setFilterValue}
-        filterOptions={[
-          { label: 'All', value: 'all' },
-          { label: 'High Priority', value: 'high' },
-          { label: 'Medium Priority', value: 'medium' },
-          { label: 'Low Priority', value: 'low' },
-        ]}
-        onAdd={() => setIsModalOpen(true)}
-        addButtonText="Add Task"
-      />
-
-      <DataTable
-        data={tasks}
-        columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        isLoading={isLoading}
-      />
+  
+        <DataTable
+          data={tasksData?.data ?? []}
+          columns={columns}
+          filters={filterOptions}
+          searchable={true}
+          pageSize={pageSize}
+          totalCount={tasksData?.total ?? 0}
+          isLoading={isLoadingTasks}
+          onPageChange={(page) => {}}
+          onSearchChange={(value) => {}}
+          onFilterChange={(key, value) => {}}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
 
       <ModalForm
         title={editingTask ? 'Edit Task' : 'New Task'}
