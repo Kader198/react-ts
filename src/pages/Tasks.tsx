@@ -86,6 +86,7 @@ export const Tasks: React.FC = () => {
     {
       header: 'Actions',
       accessorKey: 'actions',
+      clickable: false,
       cell: (task: Task) => (
         <TaskActions
           task={task}

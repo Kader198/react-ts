@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Edit2, Filter, MoreVertical, Search, Trash2, X } from 'lucide-react';
 import React, { useCallback, useEffect } from 'react';
+import { cn } from '../../lib/utils';
 import { useDataTableStore } from '../../stores/dataTableStore';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -32,6 +33,7 @@ export interface Column<T> {
   header: string;
   accessorKey: keyof T;
   cell?: (item: T) => React.ReactNode;
+  clickable?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -263,7 +265,18 @@ export function DataTable<T extends { id: string }>({
                   className={isLoading ? 'opacity-50' : ''}
                 >
                   {columns.map((column) => (
-                    <TableCell key={String(column.accessorKey)}>
+                    <TableCell 
+                      key={String(column.accessorKey)}
+                      className={cn(
+                        onEdit && column.clickable !== false && 'cursor-pointer hover:bg-gray-50/50',
+                        'transition-colors'
+                      )}
+                      onClick={() => {
+                        if (onEdit && column.clickable !== false) {
+                          onEdit(item);
+                        }
+                      }}
+                    >
                       {column.cell ? column.cell(item) : String(item[column.accessorKey])}
                     </TableCell>
                   ))}

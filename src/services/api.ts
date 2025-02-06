@@ -62,9 +62,9 @@ class ApiService {
 
       return { success: true, message: 'Connection successful' };
     } catch (error) {
-      return { 
-        success: false, 
-        message: error instanceof Error ? error.message : 'Connection failed' 
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Connection failed'
       };
     }
   }
@@ -167,7 +167,7 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<Response> {
     const token = useAuthStore.getState().token;
-    
+
     try {
       const response = await fetch(url, {
         ...options,
@@ -190,7 +190,7 @@ class ApiService {
     } catch (error) {
       if (this.currentRetry < this.retryAttempts) {
         this.currentRetry++;
-        await new Promise(resolve => 
+        await new Promise(resolve =>
           setTimeout(resolve, Math.pow(2, this.currentRetry) * 1000)
         );
         return this.fetchWithRetry(url, options);
@@ -310,7 +310,7 @@ class ApiService {
 
   private handleError(error: unknown) {
     let message = 'An unexpected error occurred';
-    
+
     if (error instanceof Error) {
       // Handle specific error types
       if ('status' in error) {
@@ -433,7 +433,7 @@ class ApiService {
     try {
       await this.fetchWithRetry(
         `${this.baseUrl}teams/${teamId}/members`,
-        { 
+        {
           method: 'POST',
           body: JSON.stringify({ userId })
         }
@@ -448,7 +448,7 @@ class ApiService {
     try {
       await this.fetchWithRetry(
         `${this.baseUrl}teams/${teamId}/members`,
-        { 
+        {
           method: 'DELETE',
           body: JSON.stringify({ userId })
         }
