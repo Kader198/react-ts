@@ -1,4 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Edit2, Filter, MoreVertical, Search, Trash2, X } from 'lucide-react';
+import React, { useCallback, useEffect } from 'react';
+import { useDataTableStore } from '../../stores/dataTableStore';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Drawer } from '../ui/drawer';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { FormInput } from '../ui/form-input';
+import { FormSelect } from '../ui/form-select';
 import {
   Table,
   TableBody,
@@ -7,20 +20,15 @@ import {
   TableHeader,
   TableRow
 } from '../ui/table';
-import { Button } from '../ui/button';
-import { Edit2, Trash2, ChevronLeft, ChevronRight, Search, Filter, X, MoreVertical } from 'lucide-react';
-import { FormInput } from '../ui/form-input';
-import { FormSelect } from '../ui/form-select';
-import { Badge } from '../ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { useDataTableStore } from '../../stores/dataTableStore';
+import { FilterBadge } from './FilterBadge';
 
-interface Column<T> {
+interface FilterOption {
+  label: string;
+  value: string;
+  className?: string;
+}
+
+export interface Column<T> {
   header: string;
   accessorKey: keyof T;
   cell?: (item: T) => React.ReactNode;
@@ -32,7 +40,7 @@ interface DataTableProps<T> {
   filters?: {
     key: keyof T;
     label: string;
-    options: { label: string; value: string }[];
+    options: FilterOption[];
   }[];
   searchable?: boolean;
   pageSize?: number;
@@ -73,6 +81,8 @@ export function DataTable<T extends { id: string }>({
     setIsSearching,
   } = useDataTableStore();
 
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
   // Debounced search with loading state
   useEffect(() => {
     if (!isSearching) return;
@@ -100,104 +110,132 @@ export function DataTable<T extends { id: string }>({
     onPageChange(page);
   }, [page, onPageChange]);
 
+  // Add effect to focus search input when search completes
+  useEffect(() => {
+    if (!isSearching && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearching]);
+
   const activeFiltersCount = Object.values(filterValues).filter(Boolean).length;
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center lg:flex-1">
-          {searchable && (
-            <div className="w-full sm:w-64">
-              <FormInput
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                icon={Search}
-              />
-            </div>
-          )}
-          
-          {filters && filters.length > 0 && (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between bg-white p-4 rounded-lg shadow-sm">
+        <div className="space-y-4 w-full lg:w-auto ">
+          <div className="flex flex-col sm:flex-row gap-4 items-center ">
+            {searchable && (
+              <div className="w-full sm:w-80 flex-shrink-0">
+                <FormInput
+                  ref={searchInputRef}
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  icon={Search}
+                  className="w-full border-gray-200 focus:ring-primary/20"
+                />
+              </div>
+            )}
+
+            {activeFiltersCount > 0 && (
+              <div className="flex flex-wrap  items-center gap-2">
+                {filters?.map((filter) => {
+                  const value = filterValues[String(filter.key)];
+                  if (!value || value === 'all') return null;
+                  
+                  const option = filter.options.find(opt => opt.value === value);
+                  if (!option) return null;
+
+                  return (
+                    <FilterBadge
+                      key={String(filter.key)}
+                      label={filter.label}
+                      value={option.label}
+                      onRemove={() => handleFilterChange(String(filter.key), '')}
+                      className={option.className}
+                    />
+                  );
+                })}
+                
+              </div>
+            )}
+          </div>
+        </div>
+
+        {filters && filters.length > 0 && (
+          <div className="flex-shrink-0 ">
             <Button
               variant="outline"
               size="sm"
               onClick={toggleFilters}
-              className="w-full sm:w-auto"
+              className="min-w-[120px] font-medium hover:bg-gray-50 border-gray-200"
             >
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="h-4 w-4 mr-2 text-gray-500" />
               Filters
               {activeFiltersCount > 0 && (
-                <Badge variant="primary" className="ml-2">
+                <Badge variant="primary" className="ml-2 bg-primary/10 text-primary">
                   {activeFiltersCount}
                 </Badge>
               )}
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {showFilters && filters && (
-        <div className="rounded-lg shadow-md bg-card p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium">Filters</h3>
-            {activeFiltersCount > 0 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+      <Drawer
+        isOpen={showFilters}
+        onClose={toggleFilters}
+        title="Filter Options"
+      >
+        <div className="space-y-6">
+          {activeFiltersCount > 0 && (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   clearFilters();
                   Object.keys(filterValues).forEach(key => {
                     onFilterChange(key, '');
                   });
                 }}
+                className="text-gray-600 hover:text-gray-900"
               >
                 <X className="h-4 w-4 mr-2" />
-                Clear filters
+                Clear all
               </Button>
-            )}
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filters.map((filter) => (
-              <FormSelect
-                key={String(filter.key)}
-                label={filter.label}
-                value={filterValues[String(filter.key)] || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  handleFilterChange(String(filter.key), value);
-                }}
-                options={[
-                  { label: `All ${filter.label}`, value: '' },
-                  ...filter.options
-                ]}
-              />
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {filters?.map((filter) => (
+              <div key={String(filter.key)} className="space-y-2">
+                <FormSelect
+                  label={filter.label}
+                  value={filterValues[String(filter.key)] || ''}
+                  onChange={(e) => handleFilterChange(String(filter.key), e.target.value)}
+                  options={[
+                    { label: `All ${filter.label}`, value: 'all' },
+                    ...filter.options
+                  ]}
+                  className="w-full"
+                />
+              </div>
             ))}
           </div>
         </div>
-      )}
+      </Drawer>
 
-      <div className="rounded-md relative">
-        {isSearching && (
-          <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-10 flex items-center justify-center backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              <span>Searching...</span>
-            </div>
-          </div>
-        )}
+      <div className="rounded-lg bg-white border border-gray-100 shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-gray-50/50">
               {columns.map((column) => (
-                <TableHead key={String(column.accessorKey)}>
+                <TableHead 
+                  key={String(column.accessorKey)}
+                  className="font-medium text-gray-600"
+                >
                   {column.header}
                 </TableHead>
               ))}
@@ -220,7 +258,7 @@ export function DataTable<T extends { id: string }>({
               </TableRow>
             ) : (
               data.map((item) => (
-                <TableRow 
+                <TableRow
                   key={item.id}
                   className={isLoading ? 'opacity-50' : ''}
                 >
@@ -282,10 +320,9 @@ export function DataTable<T extends { id: string }>({
           </TableBody>
         </Table>
       </div>
-
       {totalPages > 1 && (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-lg shadow-sm">
+          <p className="text-sm text-gray-600">
             Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, totalCount)} of{' '}
             {totalCount} results
           </p>
@@ -295,6 +332,7 @@ export function DataTable<T extends { id: string }>({
               size="sm"
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
+              className="border-gray-200"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -303,6 +341,7 @@ export function DataTable<T extends { id: string }>({
               size="sm"
               onClick={() => setPage(page + 1)}
               disabled={page === totalPages}
+              className="border-gray-200"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

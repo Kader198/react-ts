@@ -19,9 +19,12 @@ export const Calendar: React.FC = () => {
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
   const [selectedDates, setSelectedDates] = useState<{ start: string; end: string } | null>(null);
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: tasksData = [], isLoading } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => apiService.listTasks(),
+    queryFn: () => apiService.listTasks({
+      page: 1,
+      pageSize: 10,
+    }),
   });
 
   const updateTaskMutation = useMutation({
@@ -86,7 +89,7 @@ export const Calendar: React.FC = () => {
     };
   };
 
-  const events = tasks.map(task => ({
+  const events = tasksData?.data?.map(task => ({
     id: task.id,
     title: task.title,
     start: task.dueDate,
@@ -130,12 +133,7 @@ export const Calendar: React.FC = () => {
             View and manage your tasks and deadlines
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
-          <Button onClick={() => setIsNewTaskModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Task
-          </Button>
-        </div>
+      
       </div>
 
       <div className="bg-white shadow-sm rounded-lg p-4">

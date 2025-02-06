@@ -1,13 +1,13 @@
-import * as React from "react"
-import { cn } from "../../lib/utils"
+import * as React from "react";
+import { cn } from "../../lib/utils";
 
 const buttonVariants = {
   variant: {
-    primary: "bg-black text-white hover:bg-primary/90 shadow-sm",
-    destructive: "bg-red-500 text-white hover:bg-red-600 shadow-sm",
-    outline: "border border-primary/20 bg-transparent hover:bg-primary/5 text-primary",
-    ghost: "text-primary hover:bg-primary/5",
-    link: "text-primary hover:underline underline-offset-4",
+    primary: "bg-black text-white hover:bg-primary/90 hover:opacity-90 active:shadow-inner shadow-sm",
+    destructive: "bg-red-500 text-white hover:bg-red-600 hover:opacity-90 active:shadow-inner shadow-sm",
+    outline: "border border-primary/20 bg-transparent hover:bg-primary/5 hover:opacity-90 active:shadow-inner text-primary",
+    ghost: "text-primary hover:bg-primary hover:opacity-90 active:shadow-inner",
+    link: "text-primary hover:underline hover:opacity-90 active:shadow-inner underline-offset-4",
   },
   size: {
     sm: "h-8 px-3 text-sm",
@@ -25,7 +25,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", isLoading, children, ...props }, ref) => {
+  ({ className = "hover:opacity-70 cursor-pointer", variant = "primary", size = "md", isLoading, children, ...props }, ref) => {
     return (
       <button
         ref={ref}

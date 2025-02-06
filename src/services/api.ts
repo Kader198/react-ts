@@ -12,6 +12,13 @@ interface ListTasksParams {
   fields?: string[];
 }
 
+interface ListTeamsParams {
+  page: number;
+  pageSize: number;
+  search?: string;
+  filters?: Record<string, string>;
+}
+
 class ApiService {
   private static instance: ApiService;
   private baseUrl: string;
@@ -272,9 +279,33 @@ class ApiService {
   }
 
   // Teams API methods
-  async listTeams(): Promise<Team[]> {
-    const response = await this.fetchWithRetry(`${this.baseUrl}teams`);
-    return response.json();
+  async listTeams(params: ListTeamsParams): Promise<{ data: Team[]; total: number }> {
+    try {
+      const queryParams = new URLSearchParams({
+        page: String(params.page),
+        pageSize: String(params.pageSize),
+      });
+
+      if (params.search && params.search.trim()) {
+        queryParams.append('search', params.search.trim());
+      }
+
+      if (params.filters) {
+        Object.entries(params.filters).forEach(([key, value]) => {
+          if (value) {
+            queryParams.append(key, value);
+          }
+        });
+      }
+
+      const response = await this.fetchWithRetry(
+        `${this.baseUrl}teams?${queryParams.toString()}`
+      );
+      return response.json();
+    } catch (error) {
+      this.handleError(error);
+      return { data: [], total: 0 };
+    }
   }
 
   private handleError(error: unknown) {

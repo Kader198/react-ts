@@ -7,7 +7,9 @@ interface DataTableState {
   page: number;
   showFilters: boolean;
   isSearching: boolean;
+  debouncedSearch: string;
   setSearchTerm: (value: string) => void;
+  setDebouncedSearch: (value: string) => void;
   setFilter: (key: string, value: string) => void;
   clearFilters: () => void;
   setPage: (page: number) => void;
@@ -20,6 +22,7 @@ export const useDataTableStore = create<DataTableState>()(
   devtools(
     (set) => ({
       searchTerm: '',
+      debouncedSearch: '',
       filters: {},
       page: 1,
       showFilters: false,
@@ -30,6 +33,9 @@ export const useDataTableStore = create<DataTableState>()(
           searchTerm: value,
           isSearching: true,
         }),
+
+      setDebouncedSearch: (value) =>
+        set({ debouncedSearch: value }),
 
       setFilter: (key, value) =>
         set((state) => ({

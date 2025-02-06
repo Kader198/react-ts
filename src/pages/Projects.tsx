@@ -1,12 +1,12 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Calendar, Loader, Plus } from 'lucide-react';
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Users, Calendar, CheckCircle, Loader } from 'lucide-react';
+import { ModalForm } from '../components/common/ModalForm';
+import { ProjectForm } from '../components/projects/ProjectForm';
 import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
 import { apiService } from '../services/api';
 import { Project } from '../types/models';
-import { ProjectForm } from '../components/projects/ProjectForm';
-import { ModalForm } from '../components/common/ModalForm';
 
 export const Projects: React.FC = () => {
   const queryClient = useQueryClient();
@@ -18,13 +18,15 @@ export const Projects: React.FC = () => {
     name: '',
     description: '',
     dueDate: new Date().toISOString().split('T')[0],
-    members: [],
   });
 
   // Queries
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],
-    queryFn: apiService.listProjects,
+    queryFn: async () => {
+      const result = await apiService.listProjects();
+      return result;
+    },
   });
 
   // Mutations
@@ -64,7 +66,6 @@ export const Projects: React.FC = () => {
       name: '',
       description: '',
       dueDate: new Date().toISOString().split('T')[0],
-      members: [],
     });
   };
 
@@ -73,8 +74,7 @@ export const Projects: React.FC = () => {
     setFormData({
       name: project.name,
       description: project.description,
-      dueDate: project.dueDate,
-      members: project.members,
+          dueDate: project.endDate,
     });
     setIsModalOpen(true);
   };
@@ -159,7 +159,7 @@ export const Projects: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center text-sm text-gray-500">
                     <Calendar className="h-4 w-4 mr-1" />
-                    {new Date(project.dueDate).toLocaleDateString()}
+                    {new Date(project.endDate).toLocaleDateString()}
                   </div>
                   <span className={cn(
                     "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",

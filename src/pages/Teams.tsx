@@ -8,21 +8,44 @@ import { TeamForm } from '../components/teams/TeamForm';
 import { apiService } from '../services/api';
 import { Team } from '../types/models';
 import { TeamMembersModal } from '../components/teams/TeamMembersModal';
+import { useDebounce } from '../hooks/useDebounce';
+import { ConfirmationModal } from '../components/common/ConfirmationModal';
+import { useDataTableStore } from '../stores/dataTableStore';
+import { toast } from 'react-hot-toast';
 
 export const Teams: React.FC = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  });
+  const [deletingTeam, setDeletingTeam] = useState<Team | null>(null);
+  const [pageSize] = useState(10);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
 
-  const { data: teams = [], isLoading } = useQuery({
-    queryKey: ['teams'],
-    queryFn: () => apiService.listTeams(),
+  const {
+    searchTerm,
+    filters,
+    page,
+    reset: resetDataTable,
+    setIsSearching,
+  } = useDataTableStore();
+
+  // Query with debounced search/filters
+  const [debouncedSearch] = useDebounce(searchTerm, 500);
+  const [debouncedFilters] = useDebounce(filters, 500);
+
+  const queryKey = ['teams', page, pageSize];
+
+  const { data: teamsData, isLoading: isLoadingTeams } = useQuery({
+    queryKey,
+    queryFn: () => apiService.listTeams({
+      page,
+      pageSize,
+      search: debouncedSearch,
+      filters: debouncedFilters,
+    }),
+    keepPreviousData: true,
   });
 
   const columns = [
@@ -59,7 +82,10 @@ export const Teams: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleDelete(team)}
+            onClick={() => {
+              setDeletingTeam(team);
+              setIsDeleteModalOpen(true);
+            }}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -73,6 +99,10 @@ export const Teams: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
       handleCloseModal();
+      toast.success('Team created successfully');
+    },
+    onError: () => {
+      toast.error('Failed to create team');
     },
   });
 
@@ -83,12 +113,20 @@ export const Teams: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
       handleCloseModal();
     },
+    onError: () => {
+      toast.error('Failed to update team');
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiService.deleteTeam(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
+      setIsDeleteModalOpen(false);
+      setDeletingTeam(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete team');
     },
   });
 
@@ -98,6 +136,9 @@ export const Teams: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
     },
+    onError: () => {
+      toast.error('Failed to add member');
+    },
   });
 
   const removeMemberMutation = useMutation({
@@ -105,6 +146,10 @@ export const Teams: React.FC = () => {
       apiService.removeTeamMember(teamId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
+      toast.success('Member removed successfully');
+    },
+    onError: () => {
+      toast.error('Failed to remove member');
     },
   });
 
@@ -163,6 +208,18 @@ export const Teams: React.FC = () => {
     }
   };
 
+  const handleConfirmDelete = async () => {
+    if (deletingTeam) {
+      await deleteMutation.mutateAsync(deletingTeam.id);
+    }
+    setIsDeleteModalOpen(false);
+  };
+
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+  });
+
   return (
     <div className="space-y-6">
       <div className="sm:flex sm:items-center sm:justify-between">
@@ -180,16 +237,19 @@ export const Teams: React.FC = () => {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : (
-        <DataTable
-          data={teams}
-          columns={columns}
-        />
-      )}
+      <DataTable
+        id="teams-table"
+        data={teamsData?.data ?? []}
+        columns={columns}
+        searchable={true}
+        pageSize={pageSize}
+        totalCount={teamsData?.total ?? 0}
+        isLoading={isLoadingTeams}
+        onPageChange={() => {}}
+        onSearchChange={() => {}}
+        onFilterChange={() => {}}
+      
+      />
 
       <ModalForm
         title={editingTeam ? 'Edit Team' : 'New Team'}
@@ -204,6 +264,18 @@ export const Teams: React.FC = () => {
           isEditing={!!editingTeam}
         />
       </ModalForm>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeletingTeam(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Team"
+        message={`Are you sure you want to delete "${deletingTeam?.name}"? This action cannot be undone.`}
+        isLoading={deleteMutation.isPending}
+      />
 
       <ModalForm
         title="Manage Team Members"
