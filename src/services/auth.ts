@@ -1,4 +1,4 @@
-import { apiService } from './api';
+import { axiosInstance } from '../lib/axios';
 
 interface AuthResponse {
   token: string;
@@ -22,39 +22,22 @@ interface LoginData {
 
 class AuthService {
   async login(data: LoginData): Promise<AuthResponse> {
-    const response = await apiService.fetchWithRetry(
-      `${apiService.baseUrl}auth/login`,
-      {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }
-    );
-    return response.json();
+    const response = await axiosInstance.post('/auth/login', data);
+    return response.data;
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await apiService.fetchWithRetry(
-      `${apiService.baseUrl}auth/register`,
-      {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }
-    );
-    return response.json();
+    const response = await axiosInstance.post('/auth/register', data);
+    return response.data;
   }
 
   async logout(): Promise<void> {
-    await apiService.fetchWithRetry(
-      `${apiService.baseUrl}auth/logout`,
-      { method: 'POST' }
-    );
+    await axiosInstance.post('/auth/logout');
   }
 
   async getCurrentUser(): Promise<AuthResponse['user']> {
-    const response = await apiService.fetchWithRetry(
-      `${apiService.baseUrl}auth/me`
-    );
-    return response.json();
+    const response = await axiosInstance.get('/auth/me');
+    return response.data;
   }
 }
 

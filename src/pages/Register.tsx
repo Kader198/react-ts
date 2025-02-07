@@ -1,108 +1,111 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
-import { Mail, Lock, User, Loader } from 'lucide-react';
-import { FormInput } from '../components/ui/form-input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader, Lock, Mail, User } from 'lucide-react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { AuthFormLayout } from '../components/layouts/AuthFormLayout';
 import { Button } from '../components/ui/button';
+import { FormInput } from '../components/ui/form-input';
+import { RegisterInput, registerSchema } from '../lib/validations/auth';
+import { useAuthStore } from '../stores/authStore';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  
+  const {
+    register: registerField,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema)
+  });
 
-  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
-
+  const onSubmit = async (data: RegisterInput) => {
     try {
-      const success = await register(email, password, name);
+      const success = await register(data.email, data.password, data.name);
       if (success) {
+        toast.success('Account created successfully!');
         navigate('/');
       } else {
-        setError('Registration failed. Please try again.');
+        toast.error('Registration failed. Please try again.');
       }
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      toast.error('An error occurred. Please try again.');
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Sign up to get started
-          </p>
+    <AuthFormLayout
+      title="Create Account"
+      subtitle="Sign up to get started with our platform"
+      footer={{
+        text: "Already have an account?",
+        linkText: "Sign in",
+        linkTo: "/login"
+      }}
+      variant="default"
+      image={{
+        src: "/auth-background.jpg",
+        alt: "Authentication background"
+      }}
+      additionalContent={
+        <div className="text-center text-sm text-gray-500">
+          <p className="mb-1">Demo credentials</p>
+          <code className="px-2 py-1 bg-gray-100 rounded text-xs">
+            demo@example.com / demo123
+          </code>
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-4">
+          <FormInput
+            id="name"
+            label="Full Name"
+            placeholder="Enter your name"
+            icon={User}
+            error={errors.name?.message}
+            {...registerField('name')}
+          />
+
+          <FormInput
+            id="email"
+            type="email"
+            label="Email"
+            placeholder="Enter your email"
+            icon={Mail}
+            error={errors.email?.message}
+            {...registerField('email')}
+          />
+
+          <FormInput
+            id="password"
+            type="password"
+            label="Password"
+            placeholder="Create a password"
+            icon={Lock}
+            error={errors.password?.message}
+            {...registerField('password')}
+          />
         </div>
 
-        <div className="bg-card rounded-lg border p-6 shadow-sm">
-          <form onSubmit={handleRegister} className="space-y-4">
-            {error && (
-              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-                {error}
-              </div>
-            )}
-
-            <FormInput
-              id="name"
-              name="name"
-              type="text"
-              required
-              icon={User}
-              label="Full Name"
-              placeholder="Enter your name"
-            />
-
-            <FormInput
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              icon={Mail}
-              label="Email"
-              placeholder="Enter your email"
-            />
-
-            <FormInput
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              icon={Lock}
-              label="Password"
-              placeholder="Create a password"
-            />
-
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
-              Create Account
-            </Button>
-          </form>
-        </div>
-
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
-          <Link to="/login" className="text-primary hover:underline">
-            Sign in
-          </Link>
-        </div>
-      </div>
-    </div>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <div className="flex items-center">
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </div>
+          ) : (
+            'Create Account'
+          )}
+        </Button>
+      </form>
+    </AuthFormLayout>
   );
 }; 

@@ -1,18 +1,19 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthLayout } from './components/layouts/AuthLayout';
-import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { Settings } from './pages/Settings';
-import { Tasks } from './pages/Tasks';
-import { Calendar } from './pages/Calendar';
-import { Projects } from './pages/Projects';
-import { NotFound } from './pages/NotFound';
-import './App.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Register } from './pages/Register';
-import { Teams } from './pages/Teams';
 import { Toaster } from 'react-hot-toast';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import './App.css';
+import { AuthLayout } from './components/layouts/AuthLayout';
+import { Calendar } from './pages/Calendar';
+import { Dashboard } from './pages/Dashboard';
+import { Login } from './pages/Login';
+import { NotFound } from './pages/NotFound';
+import { Projects } from './pages/Projects';
+import { Register } from './pages/Register';
+import { Settings } from './pages/Settings';
+import { Tasks } from './pages/Tasks';
+import { Teams } from './pages/Teams';
+import { Users } from './pages/Users';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +38,7 @@ function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/teams" element={<Teams />} />
+            <Route path="/users" element={<Users />} />
             {/* Add other protected routes here */}
           </Route>
           <Route path="*" element={<NotFound />} />
