@@ -1,5 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
@@ -13,6 +14,8 @@ import { Dashboard } from './modules/dashboard/pages/Dashboard';
 import { Tasks } from './modules/task-management/pages/Tasks';
 import { Users } from './modules/user-management/pages/Users';
 import { Settings } from './pages/Settings';
+import { messagingService } from './services/messaging';
+import { socketService } from './services/socket';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +27,17 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    socketService.initialize(queryClient);
+    messagingService.initialize();
+
+    return () => {
+      socketService.disconnect();
+    };
+  }, [queryClient]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
