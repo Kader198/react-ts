@@ -26,6 +26,9 @@ export const Login: React.FC = () => {
     try {
       const success = await login(data.email, data.password);
       if (success) {
+        // save token to local storage
+        // @ts-ignore
+        localStorage.setItem('token', success?.token);
         toast.success('Logged in successfully!');
         navigate('/');
       } else {

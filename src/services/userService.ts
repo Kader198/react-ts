@@ -2,17 +2,21 @@ import { axiosInstance } from '../lib/axios';
 import type { User } from '../types/models';
 
 export interface CreateUserData {
-  name: string;
   email: string;
-  role: string;
-  department?: string;
+  password: string;
+  name: string;
 }
 
 export interface UpdateUserData {
-  name?: string;
-  email?: string;
-  role?: string;
-  department?: string;
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface UpdateSelfData {
+  email: string;
+  password: string;
+  name: string;
 }
 
 export interface UserResponse {
@@ -40,6 +44,11 @@ export const userService = {
 
   updateUser: async (id: string, data: UpdateUserData): Promise<User> => {
     const response = await axiosInstance.patch(`/users/${id}`, data);
+    return response.data;
+  },
+
+  updateSelf: async (data: UpdateSelfData): Promise<User> => {
+    const response = await axiosInstance.patch('/users/me', data);
     return response.data;
   },
 

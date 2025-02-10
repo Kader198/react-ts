@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useSettingsStore } from '../stores/settingsStore';
-
+import { useAuthStore } from '../stores/authStore';
 const { settings } = useSettingsStore.getState();
 
 export const axiosInstance = axios.create({
@@ -13,8 +13,8 @@ export const axiosInstance = axios.create({
 
 // Add auth token to requests
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
+  const { token } = useAuthStore.getState();
+  if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
