@@ -110,9 +110,11 @@ export interface ApiSettings {
   retryAttempts: number;
 }
 
+export type Language = 'en' | 'fr' | 'ar';
+
 export interface UserSettings {
   theme: 'light' | 'dark' | 'system';
-  language: 'en' | 'es' | 'fr';
+  language: Language;
   notifications: {
     email: boolean;
     push: boolean;

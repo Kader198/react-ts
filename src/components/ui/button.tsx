@@ -3,11 +3,11 @@ import { cn } from "../../lib/utils";
 
 const buttonVariants = {
   variant: {
-    primary: "bg-black text-white hover:bg-primary/90 hover:opacity-90 active:shadow-inner shadow-sm",
-    destructive: "bg-red-500 text-white hover:bg-red-600 hover:opacity-90 active:shadow-inner shadow-sm",
-    outline: "border border-primary/20 bg-transparent hover:bg-primary/5 hover:opacity-90 active:shadow-inner text-primary",
-    ghost: "text-primary hover:bg-primary hover:opacity-90 active:shadow-inner",
-    link: "text-primary hover:underline hover:opacity-90 active:shadow-inner underline-offset-4",
+    primary: "bg-primary text-primary-foreground hover:bg-primary/90 hover:opacity-90 active:shadow-inner shadow-sm",
+    destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:opacity-90 active:shadow-inner shadow-sm",
+    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:opacity-90 active:shadow-inner",
+    ghost: "hover:bg-accent hover:text-accent-foreground hover:opacity-90 active:shadow-inner",
+    link: "text-primary underline-offset-4 hover:underline hover:opacity-90 active:shadow-inner",
   },
   size: {
     sm: "h-8 px-3 text-sm",

@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "appName": "سمارت أي",
+    "dashboard": "لوحة التحكم",
+    "tasks": "المهام",
+    "users": "المستخدمين",
+    "settings": "الإعدادات",
+    "signOut": "تسجيل الخروج"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "description": "إدارة إعدادات وتفضيلات التطبيق",
+    "resetButton": "إعادة التعيين إلى الافتراضي",
+    "tabs": {
+      "api": "إعدادات API",
+      "preferences": "التفضيلات"
+    },
+    "form": {
+      "theme": {
+        "label": "المظهر",
+        "options": {
+          "light": "فاتح",
+          "dark": "داكن",
+          "system": "النظام"
+        }
+      },
+      "language": {
+        "label": "اللغة",
+        "options": {
+          "en": "English",
+          "fr": "Français",
+          "ar": "العربية"
+        }
+      },
+      "displayDensity": {
+        "label": "كثافة العرض",
+        "options": {
+          "comfortable": "مريح",
+          "compact": "مضغوط"
+        }
+      },
+      "timezone": {
+        "label": "المنطقة الزمنية"
+      },
+      "notifications": {
+        "title": "الإشعارات",
+        "email": {
+          "label": "إشعارات البريد الإلكتروني",
+          "description": "تلقي إشعارات عند تعيين المهام لك"
+        },
+        "push": {
+          "label": "الإشعارات المنبثقة",
+          "description": "تلقي إشعارات منبثقة على جهازك المحمول"
+        },
+        "desktop": {
+          "label": "إشعارات سطح المكتب",
+          "description": "تلقي إشعارات سطح المكتب للتحديثات المهمة"
+        }
+      }
+    },
+    "lastUpdated": "آخر تحديث: {{date}}"
+  },
+  "auth": {
+    "welcomeBack": "مرحباً بعودتك",
+    "signInToContinue": "سجل دخول إلى حسابك للمتابعة",
+    "noAccount": "ليس لديك حساب؟",
+    "createOne": "أنشئ حساباً",
+    "demoCredentials": "بيانات تجريبية",
+    "email": "البريد الإلكتروني",
+    "enterEmail": "أدخل بريدك الإلكتروني",
+    "password": "كلمة المرور",
+    "enterPassword": "أدخل كلمة المرور",
+    "rememberMe": "تذكرني",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جاري تسجيل الدخول...",
+    "loginSuccess": "تم تسجيل الدخول بنجاح!",
+    "invalidCredentials": "بيانات غير صحيحة. حاول مرة أخرى.",
+    "error": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "createAccount": "إنشاء حساب",
+    "signUpToContinue": "سجل للبدء في استخدام منصتنا",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "fullName": "الاسم الكامل",
+    "enterName": "أدخل اسمك",
+    "createPassword": "أنشئ كلمة مرور",
+    "creatingAccount": "جاري إنشاء الحساب...",
+    "registerSuccess": "تم إنشاء الحساب بنجاح!",
+    "registerFailed": "فشل التسجيل. يرجى المحاولة مرة أخرى.",
+    "backgroundImage": "خلفية المصادقة"
+  }
+} 

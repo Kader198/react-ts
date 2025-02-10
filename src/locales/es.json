@@ -1,0 +1,61 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "tasks": "Tareas",
+    "users": "Usuarios",
+    "settings": "Ajustes"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "description": "Administra la configuración y preferencias de tu aplicación",
+    "resetButton": "Restablecer valores predeterminados",
+    "tabs": {
+      "api": "Configuración de API",
+      "preferences": "Preferencias"
+    },
+    "form": {
+      "theme": {
+        "label": "Tema",
+        "options": {
+          "light": "Claro",
+          "dark": "Oscuro",
+          "system": "Sistema"
+        }
+      },
+      "language": {
+        "label": "Idioma",
+        "options": {
+          "en": "English",
+          "es": "Español",
+          "fr": "Français"
+        }
+      },
+      "displayDensity": {
+        "label": "Densidad de visualización",
+        "options": {
+          "comfortable": "Cómodo",
+          "compact": "Compacto"
+        }
+      },
+      "timezone": {
+        "label": "Zona horaria"
+      },
+      "notifications": {
+        "title": "Notificaciones",
+        "email": {
+          "label": "Notificaciones por correo",
+          "description": "Recibe notificaciones cuando te asignen tareas"
+        },
+        "push": {
+          "label": "Notificaciones push",
+          "description": "Recibe notificaciones push en tu dispositivo móvil"
+        },
+        "desktop": {
+          "label": "Notificaciones de escritorio",
+          "description": "Recibe notificaciones de escritorio para actualizaciones importantes"
+        }
+      }
+    },
+    "lastUpdated": "Última actualización: {{date}}"
+  }
+} 

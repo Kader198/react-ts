@@ -1,8 +1,18 @@
-import React, { useState } from 'react';
-import { Save, RotateCcw, Globe, Bell, Monitor, Database } from 'lucide-react';
+import { Database, Globe, Monitor, RotateCcw, Save } from 'lucide-react';
+import React, { useContext, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
 import { FormInput } from '../components/ui/form-input';
-import { Select } from '../components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import i18n from '../config/i18n';
+import { ThemeProviderContext } from '../config/theme-povider';
 import { cn } from '../lib/utils';
 import { useSettingsStore } from '../stores/settingsStore';
 import { ApiSettings, UserSettings } from '../types/models';
@@ -13,6 +23,8 @@ export const Settings: React.FC = () => {
   const { settings, updateApiSettings, updateUserSettings, resetSettings } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<'api' | 'preferences'>('api');
   const [isSaving, setIsSaving] = useState(false);
+  const { theme, setTheme } = useContext(ThemeProviderContext)
+  const { t } = useTranslation();
 
   const handleApiSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,8 +52,10 @@ export const Settings: React.FC = () => {
     setIsSaving(true);
 
     const formData = new FormData(e.currentTarget);
+    const newTheme = formData.get('theme') as UserSettings['theme'];
+    
     const userSettings: Partial<UserSettings> = {
-      theme: formData.get('theme') as UserSettings['theme'],
+      theme: newTheme,
       language: formData.get('language') as UserSettings['language'],
       notifications: {
         email: formData.get('emailNotifications') === 'on',
@@ -54,31 +68,42 @@ export const Settings: React.FC = () => {
 
     try {
       updateUserSettings(userSettings);
+      setTheme(newTheme);
       await new Promise((resolve) => setTimeout(resolve, 500));
     } finally {
       setIsSaving(false);
     }
   };
 
+  // Update language when changed
+  const handleLanguageChange = (value: string) => {
+    i18n.changeLanguage(value);
+    // Update HTML dir attribute for RTL support
+    document.documentElement.dir = value === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = value;
+  };
+
   return (
     <div className="space-y-6">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage your application settings and preferences
+          <h1 className="text-2xl font-bold text-foreground">
+            {t('settings.title')}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {t('settings.description')}
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
           <Button variant="outline" onClick={resetSettings}>
             <RotateCcw className="h-4 w-4 mr-2" />
-            Reset to Defaults
+            {t('settings.resetButton')}
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-border">
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('api')}
@@ -86,11 +111,11 @@ export const Settings: React.FC = () => {
               "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center",
               activeTab === 'api'
                 ? "border-primary text-primary"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             )}
           >
             <Database className="h-4 w-4 mr-2" />
-            API Settings
+            {t('settings.tabs.api')}
           </button>
           <button
             onClick={() => setActiveTab('preferences')}
@@ -98,7 +123,7 @@ export const Settings: React.FC = () => {
               "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center",
               activeTab === 'preferences'
                 ? "border-primary text-primary"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             )}
           >
             <Monitor className="h-4 w-4 mr-2" />
@@ -109,7 +134,7 @@ export const Settings: React.FC = () => {
 
       {/* API Settings Form */}
       {activeTab === 'api' && (
-        <div className="bg-white rounded-lg shadow-[0_2px_8px_rgb(0,0,0,0.04)] p-6">
+        <div className="card p-6">
           <form onSubmit={handleApiSubmit} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <FormInput
@@ -158,53 +183,107 @@ export const Settings: React.FC = () => {
 
       {/* User Preferences Form */}
       {activeTab === 'preferences' && (
-        <div className="bg-white rounded-lg shadow-[0_2px_8px_rgb(0,0,0,0.04)] p-6">
+        <div className="card p-6">
           <form onSubmit={handlePreferencesSubmit} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <Select
-                label="Theme"
-                name="theme"
-                defaultValue={settings.user.theme}
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System</option>
-              </Select>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  {t('settings.form.theme.label')}
+                </label>
+                <Select 
+                  name="theme" 
+                  defaultValue={settings.user.theme}
+                  onValueChange={(value) => {
+                    setTheme(value as UserSettings['theme']);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('settings.form.theme.label')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="light">
+                        {t('settings.form.theme.options.light')}
+                      </SelectItem>
+                      <SelectItem value="dark">
+                        {t('settings.form.theme.options.dark')}
+                      </SelectItem>
+                      <SelectItem value="system">
+                        {t('settings.form.theme.options.system')}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Select
-                label="Language"
-                name="language"
-                defaultValue={settings.user.language}
-              >
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="fr">Français</option>
-              </Select>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  {t('settings.form.language.label')}
+                </label>
+                <Select 
+                  name="language" 
+                  defaultValue={settings.user.language}
+                  onValueChange={handleLanguageChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('settings.form.language.label')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="fr">Français</SelectItem>
+                      <SelectItem value="ar">العربية</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Select
-                label="Display Density"
-                name="displayDensity"
-                defaultValue={settings.user.displayDensity}
-              >
-                <option value="comfortable">Comfortable</option>
-                <option value="compact">Compact</option>
-              </Select>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  {t('settings.form.displayDensity.label')}
+                </label>
+                <Select name="displayDensity" defaultValue={settings.user.displayDensity}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('settings.form.displayDensity.label')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="comfortable">
+                        {t('settings.form.displayDensity.options.comfortable')}
+                      </SelectItem>
+                      <SelectItem value="compact">
+                        {t('settings.form.displayDensity.options.compact')}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Select
-                label="Timezone"
-                name="timezone"
-                defaultValue={settings.user.timezone}
-              >
-                {timezones.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz}
-                  </option>
-                ))}
-              </Select>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  {t('settings.form.timezone.label')}
+                </label>
+                <Select name="timezone" defaultValue={settings.user.timezone}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('settings.form.timezone.label')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {timezones.map((tz) => (
+                        <SelectItem key={tz} value={tz}>
+                          {tz}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Notifications</h3>
+              <h3 className="text-lg font-medium text-foreground">
+                {t('settings.form.notifications.title')}
+              </h3>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="flex h-5 items-center">
@@ -213,14 +292,16 @@ export const Settings: React.FC = () => {
                       name="emailNotifications"
                       type="checkbox"
                       defaultChecked={settings.user.notifications.email}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="emailNotifications" className="font-medium text-gray-700">
-                      Email notifications
+                    <label htmlFor="emailNotifications" className="font-medium text-foreground">
+                      {t('settings.form.notifications.email.label')}
                     </label>
-                    <p className="text-gray-500">Get notified when tasks are assigned to you</p>
+                    <p className="text-muted-foreground">
+                      {t('settings.form.notifications.email.description')}
+                    </p>
                   </div>
                 </div>
 
@@ -231,14 +312,16 @@ export const Settings: React.FC = () => {
                       name="pushNotifications"
                       type="checkbox"
                       defaultChecked={settings.user.notifications.push}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="pushNotifications" className="font-medium text-gray-700">
-                      Push notifications
+                    <label htmlFor="pushNotifications" className="font-medium text-foreground">
+                      {t('settings.form.notifications.push.label')}
                     </label>
-                    <p className="text-gray-500">Receive push notifications on your mobile device</p>
+                    <p className="text-muted-foreground">
+                      {t('settings.form.notifications.push.description')}
+                    </p>
                   </div>
                 </div>
 
@@ -249,14 +332,16 @@ export const Settings: React.FC = () => {
                       name="desktopNotifications"
                       type="checkbox"
                       defaultChecked={settings.user.notifications.desktop}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="desktopNotifications" className="font-medium text-gray-700">
-                      Desktop notifications
+                    <label htmlFor="desktopNotifications" className="font-medium text-foreground">
+                      {t('settings.form.notifications.desktop.label')}
                     </label>
-                    <p className="text-gray-500">Get desktop notifications for important updates</p>
+                    <p className="text-muted-foreground">
+                      {t('settings.form.notifications.desktop.description')}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -272,8 +357,10 @@ export const Settings: React.FC = () => {
         </div>
       )}
 
-      <div className="text-sm text-gray-500">
-        Last updated: {new Date(settings.lastUpdated).toLocaleString()}
+      <div className="text-sm text-muted-foreground">
+        {t('settings.lastUpdated', {
+          date: new Date(settings.lastUpdated).toLocaleString()
+        })}
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AuthLayout } from '../components/layouts/AuthLayout';
+import { ForgetPassword } from '../modules/auth/ForgetPassword';
+import { VerifyOTP } from '../modules/auth/VerifyOTP';
+import { Dashboard } from '../modules/dashboard/pages/Dashboard';
 import { Tasks } from '../modules/task-management/pages/Tasks';
-import { Calendar } from '../pages/Calendar';
-import { Dashboard } from '../pages/Dashboard';
-import { Projects } from '../pages/Projects';
 import { Settings } from '../pages/Settings';
-import { Teams } from '../pages/Teams';
+
 
 export const router = createBrowserRouter([
   {
@@ -21,20 +21,16 @@ export const router = createBrowserRouter([
         element: <Tasks />,
       },
       {
-        path: 'projects',
-        element: <Projects />,
-      },
-      {
-        path: 'teams',
-        element: <Teams />,
-      },
-      {
-        path: 'calendar',
-        element: <Calendar />,
-      },
-      {
         path: 'settings',
         element: <Settings />,
+      },
+      {
+        path: 'forget-password',
+        element: <ForgetPassword method="email" />
+      },
+      {
+        path: 'verify-otp',
+        element: <VerifyOTP />
       },
     ],
   },

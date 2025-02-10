@@ -1,15 +1,12 @@
 import { LucideIcon } from 'lucide-react';
 import React from 'react';
 import { cn } from '../../lib/utils';
-import { Input } from './input';
-import { Label } from './label';
 
-interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface FormInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   helperText?: string;
   icon?: LucideIcon;
   rightIcon?: React.ReactNode;
-  inputRef?: React.RefObject<HTMLInputElement>;
   error?: string;
   isLoading?: boolean;
   required?: boolean;
@@ -26,7 +23,6 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
     className, 
     id, 
     rightIcon, 
-    inputRef, 
     error,
     isLoading,
     required,
@@ -34,19 +30,17 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
     size = 'md',
     containerClassName,
     disabled,
+    type = "text",
     ...props 
   }, ref) => {
-    // Generate unique ID if none provided
     const inputId = id || React.useId();
     
-    // Determine input height based on size
     const inputHeight = {
       sm: 'h-8',
       md: 'h-10',
       lg: 'h-12'
     }[size];
 
-    // Determine icon size based on input size
     const iconSize = {
       sm: 'h-3.5 w-3.5',
       md: 'h-4 w-4',
@@ -56,20 +50,16 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
     return (
       <div className={cn("space-y-1.5", containerClassName)}>
         {label && (
-          <Label 
+          <label 
             htmlFor={inputId} 
             className={cn(
+              "mb-2 block text-sm font-medium text-gray-900",
               "flex items-center gap-1.5",
               required && "after:content-['*'] after:text-red-500 after:ml-0.5"
             )}
           >
             {label}
-            {error && (
-              <span className="text-xs font-normal text-destructive">
-                ({error})
-              </span>
-            )}
-          </Label>
+          </label>
         )}
         <div className="relative">
           {Icon && (
@@ -80,21 +70,24 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
               <Icon className={iconSize} />
             </div>
           )}
-          <Input
-            ref={inputRef || ref}
+          <input
+            ref={ref}
             id={inputId}
+            type={type}
             aria-invalid={!!error}
             aria-describedby={helperText ? `${inputId}-description` : undefined}
             disabled={disabled || isLoading}
             className={cn(
+              "block w-full rounded-lg bg-white px-3 py-2 text-gray-900",
               inputHeight,
-              "w-full rounded-md bg-white px-3 py-2 text-sm outline-none transition-all",
               "placeholder:text-gray-400",
-              "focus:ring-1 focus:ring-offset-0",
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50",
+              "ring-1 ring-gray-200 hover:ring-gray-300",
+              "transition-colors duration-200",
+              "focus:outline-none focus:ring-2 focus:ring-primary",
+              "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
               Icon && "pl-9",
-              error && "ring-2 ring-destructive focus:ring-destructive",
-              success && "ring-2 ring-green-500 focus:ring-green-500",
+              error && "ring-2 ring-red-500",
+              success && "ring-2 ring-green-500",
               className
             )}
             {...props}
@@ -113,8 +106,8 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           <p 
             id={`${inputId}-description`}
             className={cn(
-              "text-sm",
-              error ? "text-destructive" : "text-muted-foreground"
+              "mt-1 text-sm",
+              error ? "text-red-500" : "text-gray-500"
             )}
           >
             {error || helperText}

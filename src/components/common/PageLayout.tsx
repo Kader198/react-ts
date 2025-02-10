@@ -1,5 +1,5 @@
-import React from 'react';
 import { Loader, Plus } from 'lucide-react';
+import React from 'react';
 import { Button } from '../ui/button';
 
 interface PageLayoutProps {
@@ -34,8 +34,8 @@ export function PageLayout({
           <p className="mt-2 text-sm text-gray-700">{description}</p>
         </div>
         {onAddNew && (
-          <div className="mt-4 sm:mt-0">
-            <Button onClick={onAddNew} >
+          <div className="mt-4 sm:mt-0 flex justify-end">
+            <Button onClick={onAddNew}>
               <Plus className="h-4 w-4 mr-2" />
               <span>{addNewLabel}</span>
             </Button>

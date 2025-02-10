@@ -3,16 +3,18 @@ import { Loader, Lock, Mail, User } from 'lucide-react';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AuthFormLayout } from '../components/layouts/AuthFormLayout';
-import { Button } from '../components/ui/button';
-import { FormInput } from '../components/ui/form-input';
-import { RegisterInput, registerSchema } from '../lib/validations/auth';
-import { useAuthStore } from '../stores/authStore';
+import { AuthFormLayout } from '../../components/layouts/AuthFormLayout';
+import { Button } from '../../components/ui/button';
+import { FormInput } from '../../components/ui/form-input';
+import { RegisterInput, registerSchema } from '../../lib/validations/auth';
+import { useAuthStore } from '../../stores/authStore';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
+  const { t } = useTranslation();
   
   const {
     register: registerField,
@@ -26,33 +28,33 @@ export const Register: React.FC = () => {
     try {
       const success = await register(data.email, data.password, data.name);
       if (success) {
-        toast.success('Account created successfully!');
+        toast.success(t('auth.registerSuccess'));
         navigate('/');
       } else {
-        toast.error('Registration failed. Please try again.');
+        toast.error(t('auth.registerFailed'));
       }
     } catch (err) {
-      toast.error('An error occurred. Please try again.');
+      toast.error(t('auth.error'));
     }
   };
 
   return (
     <AuthFormLayout
-      title="Create Account"
-      subtitle="Sign up to get started with our platform"
+      title={t('auth.createAccount')}
+      subtitle={t('auth.signUpToContinue')}
       footer={{
-        text: "Already have an account?",
-        linkText: "Sign in",
+        text: t('auth.haveAccount'),
+        linkText: t('auth.signIn'),
         linkTo: "/login"
       }}
       variant="default"
       image={{
         src: "/auth-background.jpg",
-        alt: "Authentication background"
+        alt: t('auth.backgroundImage')
       }}
       additionalContent={
         <div className="text-center text-sm text-gray-500">
-          <p className="mb-1">Demo credentials</p>
+          <p className="mb-1">{t('auth.demoCredentials')}</p>
           <code className="px-2 py-1 bg-gray-100 rounded text-xs">
             demo@example.com / demo123
           </code>
@@ -63,8 +65,8 @@ export const Register: React.FC = () => {
         <div className="space-y-4">
           <FormInput
             id="name"
-            label="Full Name"
-            placeholder="Enter your name"
+            label={t('auth.fullName')}
+            placeholder={t('auth.enterName')}
             icon={User}
             error={errors.name?.message}
             {...registerField('name')}
@@ -73,8 +75,8 @@ export const Register: React.FC = () => {
           <FormInput
             id="email"
             type="email"
-            label="Email"
-            placeholder="Enter your email"
+            label={t('auth.email')}
+            placeholder={t('auth.enterEmail')}
             icon={Mail}
             error={errors.email?.message}
             {...registerField('email')}
@@ -83,8 +85,8 @@ export const Register: React.FC = () => {
           <FormInput
             id="password"
             type="password"
-            label="Password"
-            placeholder="Create a password"
+            label={t('auth.password')}
+            placeholder={t('auth.createPassword')}
             icon={Lock}
             error={errors.password?.message}
             {...registerField('password')}
@@ -99,10 +101,10 @@ export const Register: React.FC = () => {
           {isSubmitting ? (
             <div className="flex items-center">
               <Loader className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
+              {t('auth.creatingAccount')}
             </div>
           ) : (
-            'Create Account'
+            t('auth.createAccount')
           )}
         </Button>
       </form>

@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "appName": "SmartAI",
+    "dashboard": "Tableau de bord",
+    "tasks": "Tâches",
+    "users": "Utilisateurs",
+    "settings": "Paramètres",
+    "signOut": "Déconnexion"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "description": "Gérer les paramètres et préférences de l'application",
+    "resetButton": "Réinitialiser",
+    "tabs": {
+      "api": "Paramètres API",
+      "preferences": "Préférences"
+    },
+    "form": {
+      "theme": {
+        "label": "Thème",
+        "options": {
+          "light": "Clair",
+          "dark": "Sombre",
+          "system": "Système"
+        }
+      },
+      "language": {
+        "label": "Langue",
+        "options": {
+          "en": "English",
+          "fr": "Français",
+          "ar": "العربية"
+        }
+      },
+      "displayDensity": {
+        "label": "Densité d'affichage",
+        "options": {
+          "comfortable": "Confortable",
+          "compact": "Compact"
+        }
+      },
+      "timezone": {
+        "label": "Fuseau horaire"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "email": {
+          "label": "Notifications par email",
+          "description": "Recevoir des notifications pour les tâches assignées"
+        },
+        "push": {
+          "label": "Notifications push",
+          "description": "Recevoir des notifications push sur votre mobile"
+        },
+        "desktop": {
+          "label": "Notifications bureau",
+          "description": "Recevoir des notifications bureau pour les mises à jour importantes"
+        }
+      }
+    },
+    "lastUpdated": "Dernière mise à jour: {{date}}"
+  },
+  "auth": {
+    "welcomeBack": "Bon retour",
+    "signInToContinue": "Connectez-vous à votre compte pour continuer",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "createOne": "Créez-en un",
+    "demoCredentials": "Identifiants de démonstration",
+    "email": "Email",
+    "enterEmail": "Entrez votre email",
+    "password": "Mot de passe",
+    "enterPassword": "Entrez votre mot de passe",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion en cours...",
+    "loginSuccess": "Connecté avec succès !",
+    "invalidCredentials": "Identifiants invalides. Veuillez réessayer.",
+    "error": "Une erreur s'est produite. Veuillez réessayer.",
+    "createAccount": "Créer un compte",
+    "signUpToContinue": "Inscrivez-vous pour commencer à utiliser notre plateforme",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "fullName": "Nom complet",
+    "enterName": "Entrez votre nom",
+    "createPassword": "Créez un mot de passe",
+    "creatingAccount": "Création du compte...",
+    "registerSuccess": "Compte créé avec succès !",
+    "registerFailed": "Échec de l'inscription. Veuillez réessayer.",
+    "backgroundImage": "Arrière-plan d'authentification"
+  }
+} 

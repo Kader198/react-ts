@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { ArrowDown, ArrowUp, BarChart3, CheckCircle, Clock, Loader, Users } from 'lucide-react';
 import React from 'react';
-import { ProjectProgressChart } from '../components/dashboard/ProjectProgressChart';
-import { TaskStatusChart } from '../components/dashboard/TaskStatusChart';
-import { TeamPerformanceChart } from '../components/dashboard/TeamPerformanceChart';
-import { dashboardService } from '../modules/dashboard/services/dashboardService';
+import { ProjectProgressChart } from '../../../components/dashboard/ProjectProgressChart';
+import { TaskStatusChart } from '../../../components/dashboard/TaskStatusChart';
+import { TeamPerformanceChart } from '../../../components/dashboard/TeamPerformanceChart';
+import { dashboardService } from '../services/dashboardService';
 
 export const Dashboard: React.FC = () => {
   const { data: dashboardData, isLoading } = useQuery({

@@ -4,12 +4,14 @@ import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { AuthLayout } from './components/layouts/AuthLayout';
+import { ForgetPassword } from './modules/auth/ForgetPassword';
+import { Login } from './modules/auth/Login';
+import { NotFound } from './modules/auth/NotFound';
+import { Register } from './modules/auth/Register';
+import { VerifyOTP } from './modules/auth/VerifyOTP';
+import { Dashboard } from './modules/dashboard/pages/Dashboard';
 import { Tasks } from './modules/task-management/pages/Tasks';
 import { Users } from './modules/user-management/pages/Users';
-import { Dashboard } from './pages/Dashboard';
-import { Login } from './pages/Login';
-import { NotFound } from './pages/NotFound';
-import { Register } from './pages/Register';
 import { Settings } from './pages/Settings';
 
 const queryClient = new QueryClient({
@@ -28,6 +30,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forget-password" element={<ForgetPassword method="email" />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route element={<AuthLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/tasks" element={<Tasks />} />

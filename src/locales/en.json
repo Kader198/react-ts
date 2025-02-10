@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "appName": "SmartAI",
+    "dashboard": "Dashboard",
+    "tasks": "Tasks",
+    "users": "Users",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your application settings and preferences",
+    "resetButton": "Reset to Defaults",
+    "tabs": {
+      "api": "API Settings",
+      "preferences": "Preferences"
+    },
+    "form": {
+      "theme": {
+        "label": "Theme",
+        "options": {
+          "light": "Light",
+          "dark": "Dark",
+          "system": "System"
+        }
+      },
+      "language": {
+        "label": "Language",
+        "options": {
+          "en": "English",
+          "es": "Español",
+          "fr": "Français"
+        }
+      },
+      "displayDensity": {
+        "label": "Display Density",
+        "options": {
+          "comfortable": "Comfortable",
+          "compact": "Compact"
+        }
+      },
+      "timezone": {
+        "label": "Timezone"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "email": {
+          "label": "Email notifications",
+          "description": "Get notified when tasks are assigned to you"
+        },
+        "push": {
+          "label": "Push notifications",
+          "description": "Receive push notifications on your mobile device"
+        },
+        "desktop": {
+          "label": "Desktop notifications",
+          "description": "Get desktop notifications for important updates"
+        }
+      }
+    },
+    "lastUpdated": "Last updated: {{date}}"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "signInToContinue": "Sign in to your account to continue",
+    "noAccount": "Don't have an account?",
+    "createOne": "Create one",
+    "demoCredentials": "Demo credentials",
+    "email": "Email",
+    "enterEmail": "Enter your email",
+    "password": "Password",
+    "enterPassword": "Enter your password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "loginSuccess": "Logged in successfully!",
+    "invalidCredentials": "Invalid credentials. Please try again.",
+    "error": "An error occurred. Please try again.",
+    "createAccount": "Create Account",
+    "signUpToContinue": "Sign up to get started with our platform",
+    "haveAccount": "Already have an account?",
+    "fullName": "Full Name",
+    "enterName": "Enter your name",
+    "createPassword": "Create a password",
+    "creatingAccount": "Creating account...",
+    "registerSuccess": "Account created successfully!",
+    "registerFailed": "Registration failed. Please try again.",
+    "backgroundImage": "Authentication background"
+  }
+} 

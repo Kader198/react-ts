@@ -73,4 +73,35 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  /* Layout adjustments */
+  .lg\:ml-0 { margin-left: 0; margin-right: 0; }
+  .ml-12 { margin-left: 0; margin-right: 3rem; }
+  .ml-2 { margin-left: 0; margin-right: 0.5rem; }
+  .ml-3 { margin-left: 0; margin-right: 0.75rem; }
+  .mr-2 { margin-right: 0; margin-left: 0.5rem; }
+  .pl-4 { padding-left: 0; padding-right: 1rem; }
+  
+  /* Flip icons */
+  .icon-flip {
+    transform: scaleX(-1);
+  }
+
+  /* Adjust text alignment */
+  .text-right { text-align: left; }
+  .text-left { text-align: right; }
+
+  /* Adjust borders */
+  .border-l { border-left: none; border-right: 1px solid; }
+  
+  /* Adjust dropdown positioning */
+  .right-0 { right: auto; left: 0; }
+}
+
+/* Add RTL class when Arabic is selected */
+html[lang="ar"] {
+  direction: rtl;
 } 

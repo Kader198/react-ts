@@ -3,16 +3,18 @@ import { Loader, Lock, Mail } from 'lucide-react';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AuthFormLayout } from '../components/layouts/AuthFormLayout';
-import { Button } from '../components/ui/button';
-import { FormInput } from '../components/ui/form-input';
-import { LoginInput, loginSchema } from '../lib/validations/auth';
-import { useAuthStore } from '../stores/authStore';
+import { AuthFormLayout } from '../../components/layouts/AuthFormLayout';
+import { Button } from '../../components/ui/button';
+import { FormInput } from '../../components/ui/form-input';
+import { LoginInput, loginSchema } from '../../lib/validations/auth';
+import { useAuthStore } from '../../stores/authStore';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+  const { t } = useTranslation();
 
   const {
     register,
@@ -26,32 +28,29 @@ export const Login: React.FC = () => {
     try {
       const success = await login(data.email, data.password);
       if (success) {
-        // save token to local storage
-        // @ts-ignore
-        localStorage.setItem('token', success?.token);
-        toast.success('Logged in successfully!');
+        toast.success(t('auth.loginSuccess'));
         navigate('/');
       } else {
-        toast.error('Invalid credentials. Please try again.');
+        toast.error(t('auth.invalidCredentials'));
       }
     } catch (err) {
-      toast.error('An error occurred. Please try again.');
+      toast.error(t('auth.error'));
     }
   };
 
   return (
     <AuthFormLayout
-      title="Welcome back"
-      subtitle="Sign in to your account to continue"
+      title={t('auth.welcomeBack')}
+      subtitle={t('auth.signInToContinue')}
       footer={{
-        text: "Don't have an account?",
-        linkText: "Create one",
+        text: t('auth.noAccount'),
+        linkText: t('auth.createOne'),
         linkTo: "/register"
       }}
       variant="default"
       additionalContent={
         <div className="text-center text-sm text-gray-500">
-          <p className="mb-1">Demo credentials</p>
+          <p className="mb-1">{t('auth.demoCredentials')}</p>
           <code className="px-2 py-1 bg-gray-100 rounded text-xs">
             demo@example.com / demo123
           </code>
@@ -63,8 +62,8 @@ export const Login: React.FC = () => {
           <FormInput
             id="email"
             type="email"
-            label="Email"
-            placeholder="Enter your email"
+            label={t('auth.email')}
+            placeholder={t('auth.enterEmail')}
             icon={Mail}
             error={errors.email?.message}
             {...register('email')}
@@ -73,8 +72,8 @@ export const Login: React.FC = () => {
           <FormInput
             id="password"
             type="password"
-            label="Password"
-            placeholder="Enter your password"
+            label={t('auth.password')}
+            placeholder={t('auth.enterPassword')}
             icon={Lock}
             error={errors.password?.message}
             {...register('password')}
@@ -89,10 +88,14 @@ export const Login: React.FC = () => {
               id="remember"
               name="remember"
             />
-            <span className="text-muted-foreground">Remember me</span>
+            <span className="text-muted-foreground">{t('auth.rememberMe')}</span>
           </label>
-          <Button variant="link" className="p-0 h-auto font-normal">
-            Forgot password?
+          <Button 
+            variant="link" 
+            className="p-0 h-auto font-normal"
+            onClick={() => navigate('/forget-password')}
+          >
+            {t('auth.forgotPassword')}
           </Button>
         </div>
 
@@ -104,10 +107,10 @@ export const Login: React.FC = () => {
           {isSubmitting ? (
             <div className="flex items-center">
               <Loader className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
+              {t('auth.signingIn')}
             </div>
           ) : (
-            'Sign in'
+            t('auth.signIn')
           )}
         </Button>
       </form>

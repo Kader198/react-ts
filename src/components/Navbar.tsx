@@ -1,5 +1,6 @@
 import { LogOut, Settings, User } from "lucide-react"
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { cn } from "../lib/utils"
 import { useAuthStore } from "../stores/authStore"
@@ -8,6 +9,8 @@ import { Button } from "./ui/button"
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore()
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm z-30">
@@ -45,7 +48,7 @@ export const Navbar: React.FC = () => {
                   size="icon"
                   className="rounded-full bg-gray-50"
                 >
-                  <User className="h-5 w-5 text-gray-600" />
+                  <User className={cn("h-5 w-5 text-gray-600", isRTL && "icon-flip")} />
                 </Button>
 
                 {/* Dropdown menu */}
@@ -68,16 +71,16 @@ export const Navbar: React.FC = () => {
                     to="/settings" 
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
+                    <Settings className={cn("h-4 w-4 mr-2", isRTL && "icon-flip")} />
+                    {t('nav.settings')}
                   </Link>
 
                   <button
                     onClick={() => logout()}
                     className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                   >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign out
+                    <LogOut className={cn("h-4 w-4 mr-2", isRTL && "icon-flip")} />
+                    {t('nav.signOut')}
                   </button>
                 </div>
               </div>
