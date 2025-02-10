@@ -1,8 +1,6 @@
 // First, let's create an API service
-import { ApiSettings, Task, Project, Team, User } from '../types/models';
-import { useSettingsStore } from '../stores/settingsStore';
-import { useAuthStore } from '../stores/authStore';
-import toast from 'react-hot-toast';
+import { BaseService } from '../../../services/api/baseService';
+import { Project, Task, Team, User } from '../../../types/models';
 
 interface ListTasksParams {
   page: number;
@@ -19,57 +17,48 @@ interface ListTeamsParams {
   filters?: Record<string, string>;
 }
 
-class ApiService {
-  private static instance: ApiService;
-  private baseUrl: string;
-  private timeout: number;
-  private retryAttempts: number;
-  private currentRetry: number = 0;
+interface DashboardStats {
+  totalTasks: number;
+  teamMembers: number;
+  hoursTracked: number;
+  activeProjects: number;
+  tasksByStatus: {
+    status: string;
+    count: number;
+  }[];
+  projectProgress: {
+    project: string;
+    progress: number;
+    total: number;
+    completed: number;
+  }[];
+  teamPerformance: {
+    date: string;
+    completedTasks: number;
+    hoursLogged: number;
+  }[];
+  recentActivity: {
+    id: string;
+    user: string;
+    action: string;
+    timestamp: string;
+  }[];
+}
+
+class TaskService extends BaseService {
+  private static instance: TaskService;
 
   private constructor() {
-    const { settings } = useSettingsStore.getState();
-    this.baseUrl = settings.api.baseUrl;
-    this.timeout = settings.api.timeout;
-    this.retryAttempts = settings.api.retryAttempts;
+    super();
   }
 
-  static getInstance(): ApiService {
-    if (!ApiService.instance) {
-      ApiService.instance = new ApiService();
+  static getInstance(): TaskService {
+    if (!TaskService.instance) {
+      TaskService.instance = new TaskService();
     }
-    return ApiService.instance;
+    return TaskService.instance;
   }
 
-  updateConfig(settings: Partial<ApiSettings>) {
-    if (settings.baseUrl) this.baseUrl = settings.baseUrl;
-    if (settings.timeout) this.timeout = settings.timeout;
-    if (settings.retryAttempts) this.retryAttempts = settings.retryAttempts;
-  }
-
-  async testConnection(): Promise<{ success: boolean; message: string }> {
-    try {
-      const response = await fetch(`${this.baseUrl}/health`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(this.timeout),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return { success: true, message: 'Connection successful' };
-    } catch (error) {
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Connection failed'
-      };
-    }
-  }
-
-  // Add these CRUD methods for tasks
   async listTasks(params: ListTasksParams): Promise<{ data: Task[]; total: number }> {
     try {
       const queryParams = new URLSearchParams({
@@ -77,12 +66,10 @@ class ApiService {
         pageSize: String(params.pageSize),
       });
 
-      // Add search param if it exists and is not empty
-      if (params.search && params.search.trim()) {
+      if (params.search?.trim()) {
         queryParams.append('search', params.search.trim());
       }
 
-      // Add filter params if they exist
       if (params.filters) {
         Object.entries(params.filters).forEach(([key, value]) => {
           if (value) {
@@ -97,7 +84,7 @@ class ApiService {
       return response.json();
     } catch (error) {
       this.handleError(error);
-      return { data: [], total: 0 }; // Return empty result on error
+      return { data: [], total: 0 };
     }
   }
 
@@ -162,70 +149,8 @@ class ApiService {
     );
   }
 
-  private async fetchWithRetry(
-    url: string,
-    options: RequestInit = {}
-  ): Promise<Response> {
-    const token = useAuthStore.getState().token;
-
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-          ...options.headers,
-        },
-        signal: AbortSignal.timeout(this.timeout),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          useAuthStore.getState().logout();
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response;
-    } catch (error) {
-      if (this.currentRetry < this.retryAttempts) {
-        this.currentRetry++;
-        await new Promise(resolve =>
-          setTimeout(resolve, Math.pow(2, this.currentRetry) * 1000)
-        );
-        return this.fetchWithRetry(url, options);
-      }
-      throw error;
-    }
-  }
-
   // Dashboard APIs
-  async getDashboardStats(): Promise<{
-    totalTasks: {
-      current: number;
-      previous: number;
-    };
-    teamMembers: {
-      current: number;
-      previous: number;
-    };
-    hoursTracked: {
-      current: number;
-      previous: number;
-    };
-    activeProjects: {
-      current: number;
-      previous: number;
-    };
-    tasksByStatus: Array<{ status: string; count: number }>;
-    projectProgress: Array<{ project: string; progress: number }>;
-    recentActivity: Array<{
-      id: string;
-      user: string;
-      action: string;
-      timestamp: string;
-    }>;
-  }> {
+  async getDashboardStats(): Promise<DashboardStats> {
     try {
       const response = await this.fetchWithRetry(`${this.baseUrl}dashboard/stats`);
       const result = await response.json();
@@ -306,74 +231,6 @@ class ApiService {
       this.handleError(error);
       return { data: [], total: 0 };
     }
-  }
-
-  private handleError(error: unknown) {
-    let message = 'An unexpected error occurred';
-
-    if (error instanceof Error) {
-      // Handle specific error types
-      if ('status' in error) {
-        switch ((error as any).status) {
-          case 400:
-            message = 'Invalid request. Please check your input.';
-            break;
-          case 401:
-            message = 'Session expired. Please login again.';
-            break;
-          case 403:
-            message = 'You do not have permission to perform this action.';
-            break;
-          case 404:
-            message = 'The requested resource was not found.';
-            break;
-          case 429:
-            message = 'Too many requests. Please try again later.';
-            break;
-          case 500:
-            message = 'Server error. Please try again later.';
-            break;
-          default:
-            message = error.message || 'An error occurred';
-        }
-      } else {
-        message = error.message;
-      }
-    }
-
-    // Show toast with error details
-    toast.error(message, {
-      duration: 5000,
-      position: 'top-right',
-      icon: '❌',
-      style: {
-        background: '#FEE2E2',
-        color: '#991B1B',
-        border: '1px solid #F87171',
-      },
-    });
-
-    // Log error for debugging
-    console.error('[API Error]:', {
-      message,
-      error,
-      timestamp: new Date().toISOString(),
-    });
-
-    throw error;
-  }
-
-  private handleSuccess(message: string) {
-    toast.success(message, {
-      duration: 3000,
-      position: 'top-right',
-      icon: '✅',
-      style: {
-        background: '#DCFCE7',
-        color: '#166534',
-        border: '1px solid #4ADE80',
-      },
-    });
   }
 
   async createTeam(data: Partial<Team>): Promise<Team> {
@@ -460,4 +317,4 @@ class ApiService {
   }
 }
 
-export const apiService = ApiService.getInstance(); 
+export const taskService = TaskService.getInstance(); 

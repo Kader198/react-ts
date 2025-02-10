@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { ConfirmationModal } from '../components/common/ConfirmationModal';
-import type { Column } from '../components/common/DataTable';
-import { DataTable } from '../components/common/DataTable';
-import { ModalForm } from '../components/common/ModalForm';
-import { PageLayout } from '../components/common/PageLayout';
-import { PriorityBadge } from '../components/tasks/PriorityBadge';
-import { TaskActions } from '../components/tasks/TaskActions';
-import { TaskForm } from '../components/tasks/TaskForm';
-import { TaskStatusBadge } from '../components/tasks/TaskStatusBadge';
-import { useDebounce } from '../hooks/useDebounce';
+import { ConfirmationModal } from '../../../components/common/ConfirmationModal';
+import type { Column } from '../../../components/common/DataTable';
+import { DataTable } from '../../../components/common/DataTable';
+import { ModalForm } from '../../../components/common/ModalForm';
+import { PageLayout } from '../../../components/common/PageLayout';
+import { useDebounce } from '../../../hooks/useDebounce';
+import { useDataTableStore } from '../../../stores/dataTableStore';
+import { Task } from '../../../types/models';
+import { PriorityBadge } from '../components/PriorityBadge';
+import { TaskActions } from '../components/TaskActions';
+import { TaskForm } from '../components/TaskForm';
+import { TaskStatusBadge } from '../components/TaskStatusBadge';
 import { useTasks } from '../hooks/useTasks';
-import { useDataTableStore } from '../stores/dataTableStore';
-import { Task } from '../types/models';
 
 // Add this status color mapping near the top of the component
 const statusColors = {

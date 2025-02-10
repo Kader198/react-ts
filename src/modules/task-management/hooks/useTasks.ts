@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Task } from '../types/models';
-import { apiService } from '../services/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
+import { Task } from '../../../types/models';
+import { taskService } from '../services/taskService';
 
 export function useTasks(page: number, pageSize: number, search?: string, filters?: Record<string, string>) {
   const queryClient = useQueryClient();
@@ -10,7 +10,7 @@ export function useTasks(page: number, pageSize: number, search?: string, filter
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
-      const result = await apiService.listTasks({
+      const result = await taskService.listTasks({
         page,
         pageSize,
         search,
@@ -21,7 +21,7 @@ export function useTasks(page: number, pageSize: number, search?: string, filter
   });
 
   const createMutation = useMutation({
-    mutationFn: (newTask: Partial<Task>) => apiService.createTask(newTask),
+    mutationFn: (newTask: Partial<Task>) => taskService.createTask(newTask),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Task created successfully');
@@ -33,7 +33,7 @@ export function useTasks(page: number, pageSize: number, search?: string, filter
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Task> }) =>
-      apiService.updateTask(id, data),
+      taskService.updateTask(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Task updated successfully');
@@ -44,7 +44,7 @@ export function useTasks(page: number, pageSize: number, search?: string, filter
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiService.deleteTask(id),
+    mutationFn: (id: string) => taskService.deleteTask(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Task deleted successfully');
@@ -56,7 +56,7 @@ export function useTasks(page: number, pageSize: number, search?: string, filter
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Task['status'] }) =>
-      apiService.updateTask(id, { status }),
+      taskService.updateTask(id, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
     },

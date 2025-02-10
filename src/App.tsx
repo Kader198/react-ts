@@ -4,16 +4,13 @@ import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { AuthLayout } from './components/layouts/AuthLayout';
-import { Calendar } from './pages/Calendar';
+import { Tasks } from './modules/task-management/pages/Tasks';
+import { Users } from './modules/user-management/pages/Users';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
 import { NotFound } from './pages/NotFound';
-import { Projects } from './pages/Projects';
 import { Register } from './pages/Register';
 import { Settings } from './pages/Settings';
-import { Tasks } from './pages/Tasks';
-import { Teams } from './pages/Teams';
-import { Users } from './pages/Users';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,10 +31,7 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/tasks" element={<Tasks />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/projects" element={<Projects />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/teams" element={<Teams />} />
             <Route path="/users" element={<Users />} />
             {/* Add other protected routes here */}
           </Route>

@@ -1,14 +1,15 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart3, Users, CheckCircle, Clock, ArrowUp, ArrowDown, Loader } from 'lucide-react';
-import { apiService } from '../services/api';
-import { TaskStatusChart } from '../components/dashboard/TaskStatusChart';
+import { ArrowDown, ArrowUp, BarChart3, CheckCircle, Clock, Loader, Users } from 'lucide-react';
+import React from 'react';
 import { ProjectProgressChart } from '../components/dashboard/ProjectProgressChart';
+import { TaskStatusChart } from '../components/dashboard/TaskStatusChart';
+import { TeamPerformanceChart } from '../components/dashboard/TeamPerformanceChart';
+import { dashboardService } from '../modules/dashboard/services/dashboardService';
 
 export const Dashboard: React.FC = () => {
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['dashboard'],
-    queryFn: () => apiService.getDashboardStats(),
+    queryFn: () => dashboardService.getDashboardStats(),
   });
 
   const stats = [
@@ -115,6 +116,16 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Team Performance Chart */}
+      <div className="bg-white rounded-lg shadow-[0_2px_8px_rgb(0,0,0,0.04)] p-6">
+        <h3 className="text-lg font-medium text-gray-900">Team Performance</h3>
+        {dashboardData?.teamPerformance && (
+          <div className="mt-4">
+            <TeamPerformanceChart data={dashboardData.teamPerformance} />
+          </div>
+        )}
       </div>
 
       {/* Recent Activity */}

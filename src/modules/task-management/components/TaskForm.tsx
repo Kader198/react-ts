@@ -1,13 +1,8 @@
 import React from 'react';
-import { Task } from '../../types/models';
-import { Loader, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
-import { Label } from "../ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import { Select } from '../ui/select';
-import { FormInput } from '../ui/form-input';
-import { FormSelect } from '../ui/form-select';
+import { FormInput } from '../../../components/ui/form-input';
+import { FormSelect } from '../../../components/ui/form-select';
+import { Label } from "../../../components/ui/label";
+import { Task } from '../../../types/models';
 
 interface TaskFormProps {
   formData: {

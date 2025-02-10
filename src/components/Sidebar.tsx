@@ -1,7 +1,5 @@
 import {
-  Calendar,
   CheckSquare,
-  FolderKanban,
   LayoutDashboard,
   Menu,
   Settings,
@@ -22,21 +20,6 @@ const menuItems = [
     title: "Tasks",
     icon: CheckSquare,
     path: "/tasks",
-  },
-  {
-    title: "Projects",
-    icon: FolderKanban,
-    path: "/projects",
-  },
-  {
-    title: "Calendar",
-    icon: Calendar,
-    path: "/calendar",
-  },
-  {
-    title: "Teams",
-    icon: Users,
-    path: "/teams",
   },
   {
     title: "Users",

@@ -1,5 +1,5 @@
-import { axiosInstance } from '../lib/axios';
-import type { User } from '../types/models';
+import { axiosInstance } from '../../../lib/axios';
+import type { User } from '../../../types/models';
 
 export interface CreateUserData {
   email: string;
@@ -43,7 +43,7 @@ export const userService = {
   },
 
   updateUser: async (id: string, data: UpdateUserData): Promise<User> => {
-    const response = await axiosInstance.patch(`/users/${id}`, data);
+    const response = await axiosInstance.put(`/users/${id}`, data);
     return response.data;
   },
 

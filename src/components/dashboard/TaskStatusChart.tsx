@@ -1,49 +1,54 @@
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
 
 interface TaskStatusChartProps {
-  data: Array<{
+  data: {
     status: string;
     count: number;
-  }>;
+  }[];
 }
 
 export const TaskStatusChart: React.FC<TaskStatusChartProps> = ({ data }) => {
-  const COLORS = {
-    'todo': '#9ca3af',
-    'in-progress': '#3b82f6',
-    'in-review': '#f59e0b',
-    'completed': '#10b981'
+  const options: Highcharts.Options = {
+    chart: {
+      type: 'pie',
+      height: '300px'
+    },
+    title: {
+      text: undefined
+    },
+    plotOptions: {
+      pie: {
+        allowPointSelect: true,
+        cursor: 'pointer',
+        dataLabels: {
+          enabled: true,
+          format: '<b>{point.name}</b>: {point.percentage:.1f}%'
+        }
+      }
+    },
+    series: [{
+      type: 'pie',
+      name: 'Tasks',
+      data: data.map(item => ({
+        name: item.status,
+        y: item.count,
+        color: getStatusColor(item.status)
+      }))
+    }]
   };
 
-  const formattedData = data.map(item => ({
-    name: item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('-', ' '),
-    value: item.count
-  }));
+  return <HighchartsReact highcharts={Highcharts} options={options} />;
+};
 
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
-        <Pie
-          data={formattedData}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-          outerRadius={80}
-          fill="#8884d8"
-          dataKey="value"
-        >
-          {formattedData.map((entry, index) => (
-            <Cell 
-              key={`cell-${index}`} 
-              fill={COLORS[entry.name.toLowerCase().replace(' ', '-') as keyof typeof COLORS]} 
-            />
-          ))}
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
-  );
+const getStatusColor = (status: string): string => {
+  const colors = {
+    'To Do': '#E5E7EB',
+    'In Progress': '#60A5FA',
+    'In Review': '#F59E0B',
+    'Done': '#34D399',
+    'Blocked': '#EF4444'
+  };
+  return colors[status as keyof typeof colors] || '#CBD5E1';
 }; 

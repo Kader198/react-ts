@@ -1,5 +1,6 @@
 import { FiUsers } from 'react-icons/fi';
 import { Users } from '../pages/Users';
+import { APP_ROUTES, AppRoute } from '../types/navigation';
 // ... other imports ...
 
 export const navigationConfig: AppRoute[] = [

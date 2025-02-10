@@ -1,9 +1,9 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AuthLayout } from '../components/layouts/AuthLayout';
-import { Dashboard } from '../pages/Dashboard';
-import { Tasks } from '../pages/Tasks';
-import { Projects } from '../pages/Projects';
+import { Tasks } from '../modules/task-management/pages/Tasks';
 import { Calendar } from '../pages/Calendar';
+import { Dashboard } from '../pages/Dashboard';
+import { Projects } from '../pages/Projects';
 import { Settings } from '../pages/Settings';
 import { Teams } from '../pages/Teams';
 

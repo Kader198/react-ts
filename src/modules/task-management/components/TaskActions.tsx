@@ -1,7 +1,7 @@
 import { ArrowRight, Edit2, Trash2 } from 'lucide-react';
 import { Tooltip } from 'react-tooltip';
-import { Task } from '../../types/models';
-import { Button } from '../ui/button';
+import { Button } from '../../../components/ui/button';
+import { Task } from '../../../types/models';
 
 interface TaskActionsProps {
   task: Task;

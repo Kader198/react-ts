@@ -1,8 +1,8 @@
-import React from 'react';
-import { Clock, Calendar, AlertCircle, CheckCircle2, User } from 'lucide-react';
-import { Task } from '../../types/models';
 import { format } from 'date-fns';
-import { cn } from '../../lib/utils';
+import { AlertCircle, Calendar, Clock, User } from 'lucide-react';
+import React from 'react';
+import { cn } from '../../../lib/utils';
+import { Task } from '../../../types/models';
 
 interface TaskDetailsModalProps {
   task: Task;

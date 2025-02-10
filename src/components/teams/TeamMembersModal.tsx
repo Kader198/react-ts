@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, X, UserCircle } from 'lucide-react';
+import { Search, UserCircle, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { apiService } from '../../modules/task-management/services/taskService';
+import { User } from '../../types/models';
 import { Button } from '../ui/button';
 import { FormInput } from '../ui/form-input';
-import { apiService } from '../../services/api';
-import { User } from '../../types/models';
 
 interface TeamMembersModalProps {
   teamId: string;

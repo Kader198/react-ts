@@ -1,19 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { ConfirmationModal } from '../components/common/ConfirmationModal';
-import type { Column } from '../components/common/DataTable';
-import { DataTable } from '../components/common/DataTable';
-import { ModalForm } from '../components/common/ModalForm';
-import { PageLayout } from '../components/common/PageLayout';
-import { UserForm } from '../components/users/UserForm';
-import { useDebounce } from '../hooks/useDebounce';
-import { useUsers } from '../hooks/useUsers';
-import { useDataTableStore } from '../stores/dataTableStore';
-import type { User } from '../types/models';
+import { useEffect, useState } from "react";
+import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
+import { Column, DataTable } from "../../../components/common/DataTable";
+import { PageLayout } from "../../../components/common/PageLayout";
+import { useDebounce } from "../../../hooks/useDebounce";
+import { useDataTableStore } from "../../../stores/dataTableStore";
+import { User } from "../../../types/models";
+import { UserFormModal } from "../components/UserFormModal";
+import { useUsers } from "../hooks/useUsers";
 
 const roleColors = {
   'admin': 'bg-purple-100 text-purple-800',
-  'manager': 'bg-blue-100 text-blue-800',
-  'employee': 'bg-green-100 text-green-800',
+  'user': 'bg-blue-100 text-blue-800',
 } as const;
 
 interface FilterOption {
@@ -65,7 +62,6 @@ export const Users: React.FC = () => {
         </span>
       ),
     },
-    { header: 'Department', accessorKey: 'department' },
     {
       header: 'Actions',
       accessorKey: 'actions',
@@ -165,27 +161,38 @@ export const Users: React.FC = () => {
             options: [
               { label: 'All', value: '' },
               { label: 'Admin', value: 'admin', className: roleColors['admin'] },
-              { label: 'Manager', value: 'manager', className: roleColors['manager'] },
-              { label: 'Employee', value: 'employee', className: roleColors['employee'] },
+              { label: 'User', value: 'user', className: roleColors['user'] },
             ],
           },
         ]}
       />
 
-      <ModalForm
-        title={editingUser ? 'Edit User' : 'New User'}
+      <UserFormModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSubmit={handleSubmit}
+        editingUser={editingUser}
         isLoading={createMutation.isPending || updateMutation.isPending}
-      >
-        <div className="max-w-lg mx-auto">
-          <UserForm
-            formData={formData}
-            setFormData={setFormData}
-          />
-        </div>
-      </ModalForm>
+        onSubmit={async (data) => {
+          if (editingUser) {
+            await updateMutation.mutateAsync({
+              id: editingUser.id,
+              data: {
+                name: data.name,
+                email: data.email,
+                role: data.role,
+              },
+            });
+          } else {
+            await createMutation.mutateAsync({
+              name: data.name,
+              email: data.email,
+              role: data.role,
+              password: data.password,
+            });
+          }
+          handleCloseModal();
+        }}
+      />
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
